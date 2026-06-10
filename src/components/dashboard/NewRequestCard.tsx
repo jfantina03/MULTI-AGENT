@@ -34,7 +34,7 @@ export function NewRequestCard() {
             <span className="text-xs text-zinc-600">Confier à :</span>
             <button className="flex items-center gap-1.5 rounded-lg border border-surface-border bg-surface-overlay px-2.5 py-1.5 text-xs text-zinc-300 hover:border-surface-muted transition-colors">
               {agent && (
-                <span style={{ color: agent.colorHex }}>{agent.emoji}</span>
+                <span className="text-emerald-400 font-bold text-xs">{agent.name[0]}</span>
               )}
               <span>{agent?.name ?? "THOMAS"}</span>
               <ChevronDown size={11} className="text-zinc-600" />
@@ -48,7 +48,7 @@ export function NewRequestCard() {
                   onClick={() => setSelectedAgent(a.id)}
                   className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-surface-raised"
                 >
-                  <span>{a.emoji}</span>
+                  <span className="text-emerald-400 font-bold">{a.name[0]}</span>
                   <span>{a.name}</span>
                 </button>
               ))}

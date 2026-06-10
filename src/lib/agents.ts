@@ -1,127 +1,272 @@
-import type { Agent } from "@/types";
+export type AgentId = "thomas" | "hugo" | "lilou" | "ines" | "leo" | "lucas" | "claire";
+
+export interface AgentAction {
+  id: string;
+  label: string;
+  seed: string;
+  reply: string;
+}
+
+export interface AgentDocument {
+  type: "pdf" | "doc" | "xls" | "img";
+  name: string;
+  meta: string;
+}
+
+export interface Agent {
+  id: AgentId;
+  name: string;
+  role: string;
+  isManager?: boolean;
+  status: string;
+  avatar: string;       // path to /avatars/{id}.png
+  short: string;
+  intro: string;
+  actions: AgentAction[];
+  documents: AgentDocument[];
+}
 
 export const AGENTS: Agent[] = [
   {
     id: "thomas",
-    name: "THOMAS",
-    role: "Manager IA",
-    description:
-      "Coordonne les missions, répartit les tâches entre les agents et produit des plans d'action.",
-    color: "bg-indigo-500",
-    colorHex: "#6366f1",
-    emoji: "🧠",
-    href: "/agents/thomas",
-    capabilities: [
-      "Analyse et répartition des missions",
-      "Plans d'action structurés",
-      "Synthèses et comptes rendus",
-      "Coordination multi-agents",
+    name: "Thomas",
+    role: "Manager",
+    isManager: true,
+    status: "Orchestrateur",
+    avatar: "/avatars/thomas.png",
+    short: "Confiez-lui un objectif, il le répartit entre les bons services.",
+    intro:
+      "Bonjour Jade 👋 Je suis Thomas, votre manager. Donnez-moi un objectif global et je le découpe en missions que je délègue aux bons services. Par quoi commence-t-on aujourd'hui ?",
+    actions: [
+      {
+        id: "deleguer",
+        label: "Déléguer une mission",
+        seed: "J'aimerais lancer la commercialisation d'un programme PSLA de 14 logements à Cesson-Sévigné.",
+        reply:
+          "Parfait. Je découpe la mission en 4 volets et je délègue :\n\n• Hugo (Commercial) — constituer une liste de prospects éligibles PSLA sur le bassin rennais.\n• Lilou (Community Manager) — préparer une campagne d'annonce sur Insta + LinkedIn, à la charte.\n• Léo (Financier) — bâtir le plan de financement type acquéreur (mensualités, redevance).\n• Claire (Juriste) — préparer le modèle de contrat de location-accession.\n\nJe vous fais un point d'équipe dès que les premiers livrables sont prêts. Je lance ?",
+      },
+      {
+        id: "point",
+        label: "Point d'équipe",
+        seed: "Fais-moi un point d'équipe sur les missions en cours.",
+        reply:
+          "Voici l'état des lieux des services :\n\n• Hugo — liste de prospection 35 : 38 contacts qualifiés ✅\n• Lilou — calendrier édito juin validé, 2 carrousels en attente de votre relecture\n• Léo — prévisionnel 2026 : v2 prête\n• Claire — compromis lot Cesson : en relecture juridique\n\nDeux points demandent votre arbitrage. On les traite maintenant ?",
+      },
     ],
-  },
-  {
-    id: "lilou",
-    name: "LILOU",
-    role: "Community Manager",
-    description:
-      "Crée les contenus Instagram, LinkedIn, TikTok, scripts vidéo et gère le calendrier éditorial.",
-    color: "bg-pink-500",
-    colorHex: "#ec4899",
-    emoji: "📱",
-    href: "/agents/lilou",
-    capabilities: [
-      "Posts Instagram, LinkedIn, TikTok",
-      "Scripts vidéo et carrousels",
-      "Calendrier éditorial",
-      "Veille et tendances",
-    ],
-  },
-  {
-    id: "claire",
-    name: "CLAIRE",
-    role: "Juriste",
-    description:
-      "Rédige contrats et courriers, répond aux questions juridiques et assure la veille réglementaire.",
-    color: "bg-amber-500",
-    colorHex: "#f59e0b",
-    emoji: "⚖️",
-    href: "/agents/claire",
-    capabilities: [
-      "Rédaction de contrats",
-      "Courriers juridiques",
-      "Questions droit immobilier",
-      "Veille BRS, PSLA, ANRU",
-    ],
-  },
-  {
-    id: "lucas",
-    name: "LUCAS",
-    role: "Assistant rédactionnel",
-    description:
-      "Reformule, rédige comptes rendus, courriers, e-mails, présentations et synthèses.",
-    color: "bg-emerald-500",
-    colorHex: "#10b981",
-    emoji: "✍️",
-    href: "/agents/lucas",
-    capabilities: [
-      "Reformulation professionnelle",
-      "Comptes rendus de RDV",
-      "Courriers et e-mails",
-      "Synthèses et présentations",
-    ],
-  },
-  {
-    id: "leo",
-    name: "LÉO",
-    role: "Financier",
-    description:
-      "Produit prévisionnels, comptes de résultat, analyses financières et tableaux de bord KPI.",
-    color: "bg-blue-500",
-    colorHex: "#3b82f6",
-    emoji: "📊",
-    href: "/agents/leo",
-    capabilities: [
-      "Prévisionnels financiers",
-      "Comptes de résultat",
-      "Analyses et KPI",
-      "Tableaux de bord",
+    documents: [
+      { type: "doc", name: "Brief mission — modèle", meta: "Modèle · 24 ko" },
+      { type: "pdf", name: "Compte-rendu point d'équipe — mai", meta: "PDF · 312 ko" },
+      { type: "doc", name: "Feuille de route Q3 2026", meta: "Modèle · 48 ko" },
     ],
   },
   {
     id: "hugo",
-    name: "HUGO",
+    name: "Hugo",
     role: "Commercial",
-    description:
-      "Prépare argumentaires, fiches entreprises, RDV clients et stratégie de prospection.",
-    color: "bg-orange-500",
-    colorHex: "#f97316",
-    emoji: "🤝",
-    href: "/agents/hugo",
-    capabilities: [
-      "Argumentaires de vente",
-      "Préparation de RDV",
-      "Fiches entreprises",
-      "Prospection B2B/B2C",
+    status: "Disponible",
+    avatar: "/avatars/hugo.png",
+    short: "Repère les clients & entreprises à prospecter en Ille-et-Vilaine (35).",
+    intro:
+      "Bonjour Jade ! Je suis Hugo, votre commercial. Je repère les clients et entreprises à prospecter en Ille-et-Vilaine (35). Dites-moi ce qu'il vous faut.",
+    actions: [
+      {
+        id: "prospection",
+        label: "Liste de prospection",
+        seed: "Établis une liste de prospection de primo-accédants éligibles PSLA sur Rennes Métropole.",
+        reply:
+          "Je prépare une liste qualifiée. Cible : ménages primo-accédants sous plafonds PSLA, secteur Rennes Métropole.\n\n• 38 profils éligibles identifiés (revenus sous plafond zone B1)\n• Priorité aux communes : Cesson-Sévigné, Chartres-de-Bretagne, Bruz\n• Canal recommandé : mailing + relance téléphonique\n\nJe vous exporte la liste complète dans l'onglet Documents. Je la segmente par commune ?",
+      },
+      {
+        id: "fiche",
+        label: "Fiche entreprise",
+        seed: "Fais une fiche entreprise sur un employeur local à démarcher pour de l'accession.",
+        reply:
+          "Voici une fiche type d'entreprise à démarcher (partenariat employeur / Action Logement) :\n\n• Effectif : > 250 salariés sur le bassin rennais\n• Angle : accompagner les salariés primo-accédants (PSLA / BRS)\n• Interlocuteur : service RH / référent logement\n\nJe peux décliner cette fiche pour 5 employeurs cibles du 35. On y va ?",
+      },
+      {
+        id: "argumentaire",
+        label: "Argumentaire",
+        seed: "Donne-moi un argumentaire pour vendre le PSLA à un primo-accédant hésitant.",
+        reply:
+          "Argumentaire PSLA — primo-accédant :\n\n1. On commence par louer, on achète quand on est prêt : phase locative sécurisante.\n2. TVA réduite (5,5 %) et exonération de taxe foncière (15 ans selon commune).\n3. Mensualités maîtrisées, redevance qui se transforme en apport.\n4. Garantie de rachat et de relogement : le filet de sécurité.\n\nJe vous le reformule en version orale pour un RDV ?",
+      },
+    ],
+    documents: [
+      { type: "xls", name: "Liste prospection 35 — mai", meta: "Tableur · 86 ko" },
+      { type: "doc", name: "Fiche entreprise — modèle", meta: "Modèle · 31 ko" },
+      { type: "pdf", name: "Argumentaire PSLA", meta: "PDF · 240 ko" },
+    ],
+  },
+  {
+    id: "lilou",
+    name: "Lilou",
+    role: "Community Manager",
+    status: "En ligne",
+    avatar: "/avatars/lilou.png",
+    short: "Rédige posts, réels et carrousels Insta · TikTok · LinkedIn, à la charte.",
+    intro:
+      "Coucou Jade ! Lilou à l'appareil 📱 Je rédige vos posts, réels et carrousels pour Insta, TikTok et LinkedIn, toujours à la charte Orizon. On crée quoi aujourd'hui ?",
+    actions: [
+      {
+        id: "linkedin",
+        label: "Post LinkedIn",
+        seed: "Rédige un post LinkedIn pour annoncer le programme PSLA de Cesson-Sévigné.",
+        reply:
+          "Voici une proposition de post LinkedIn :\n\n« 🔑 Devenir propriétaire à Cesson-Sévigné, sans se précipiter.\nNotre nouveau programme en location-accession (PSLA) ouvre : on loue d'abord, on achète quand on est prêt. TVA réduite, redevance qui devient apport, sécurité du rachat.\n14 logements. Bassin rennais. Premiers RDV ouverts. »\n\nJe vous prépare 3 variantes de hook ?",
+      },
+      {
+        id: "carrousel",
+        label: "Carrousel Insta",
+        seed: "Propose un carrousel Instagram qui explique le BRS simplement.",
+        reply:
+          "Carrousel Insta « Le BRS en 5 slides » :\n\n1. Le BRS, c'est quoi ? (titre + visuel clé)\n2. On achète les murs, pas le terrain → prix réduit\n3. Une redevance modérée pour le foncier\n4. Pour qui ? primo-accédants sous plafonds\n5. Envie d'en savoir plus ? → CTA RDV\n\nJe respecte la charte (vert forêt + menthe). Je rédige les textes de chaque slide ?",
+      },
+      {
+        id: "reel",
+        label: "Idées de réel",
+        seed: "Donne-moi des idées de réels courts pour TikTok / Insta.",
+        reply:
+          "5 idées de réels (15-30 s) :\n\n• « PSLA vs achat classique » en 3 chiffres\n• Visite éclair d'un T3 du programme Cesson\n• « 3 idées reçues sur l'accession sociale »\n• Témoignage primo-accédant (avant / après)\n• « Combien ça coûte vraiment ? » mensualité à l'écran\n\nJe vous écris le script du premier ?",
+      },
+      {
+        id: "calendrier",
+        label: "Calendrier édito",
+        seed: "Construis-moi un calendrier éditorial pour le mois.",
+        reply:
+          "Calendrier édito — juin (3 posts/semaine) :\n\n• Lun — pédagogie (PSLA, BRS, accession)\n• Mer — programme / coulisses (visite, équipe)\n• Ven — preuve sociale (témoignage, chiffre)\n\nRéseaux : LinkedIn (pro), Insta (grand public), TikTok (jeunes actifs). Je vous le dépose dans Documents ?",
+      },
+    ],
+    documents: [
+      { type: "xls", name: "Calendrier édito — juin", meta: "Tableur · 54 ko" },
+      { type: "pdf", name: "Charte réseaux sociaux Orizon", meta: "PDF · 1,2 Mo" },
+      { type: "img", name: "Carrousel BRS — Insta", meta: "Visuels · 5 slides" },
     ],
   },
   {
     id: "ines",
-    name: "INÈS",
-    role: "Analyste stratégique",
-    description:
-      "Produit analyses concurrentielles, rapports stratégiques, veille marché et recommandations.",
-    color: "bg-violet-500",
-    colorHex: "#8b5cf6",
-    emoji: "📈",
-    href: "/agents/ines",
-    capabilities: [
-      "Analyse concurrentielle",
-      "Rapports stratégiques",
-      "Analyse des performances",
-      "Veille et recommandations",
+    name: "Inès",
+    role: "Analyste Stratégique",
+    status: "Disponible",
+    avatar: "/avatars/ines.png",
+    short: "Analyse vos résultats dans une logique d'amélioration continue.",
+    intro:
+      "Bonjour Jade. Inès, analyste stratégique. J'examine vos résultats et je dégage des axes d'amélioration concrets. Sur quoi voulez-vous voir plus clair ?",
+    actions: [
+      {
+        id: "analyse",
+        label: "Analyse de résultats",
+        seed: "Analyse les résultats de notre campagne PSLA du mois.",
+        reply:
+          "Lecture des résultats du mois :\n\n• 38 prospects qualifiés → 11 RDV → 3 réservations\n• Taux de transformation RDV → réservation : 27 % (au-dessus de la moyenne secteur)\n• Point faible : délai moyen entre premier contact et RDV = 9 jours (trop long)\n\nRecommandation : mettre en place une séquence de nurturing à J+2 et J+5. Vous voulez que je vous la prépare ?",
+      },
+      {
+        id: "benchmark",
+        label: "Benchmark concurrents",
+        seed: "Fais un benchmark des agences concurrentes sur Rennes.",
+        reply:
+          "Benchmark — agences accession sociale sur Rennes Métropole :\n\n• 4 acteurs identifiés avec une offre PSLA / BRS active\n• Différenciateur Orizon : accompagnement end-to-end + expertise accession aidée\n• Lacune concurrentielle : aucun concurrent ne communique sur le BRS de façon pédagogique\n\nOpportunité : prendre le leadership éditorial sur le BRS. Je vous détaille la stratégie ?",
+      },
+    ],
+    documents: [
+      { type: "pdf", name: "Rapport mensuel — mai", meta: "PDF · 480 ko" },
+      { type: "xls", name: "Dashboard KPIs", meta: "Tableur · 62 ko" },
+    ],
+  },
+  {
+    id: "leo",
+    name: "Léo",
+    role: "Financier",
+    status: "Disponible",
+    avatar: "/avatars/leo.png",
+    short: "Bilan, compte de résultat et prévisionnel — répond en données chiffrées.",
+    intro:
+      "Bonjour Jade. Je suis Léo, votre analyste financier. Prévisionnels, comptes de résultat, tableaux de bord KPI — je réponds en chiffres. Que voulez-vous modéliser ?",
+    actions: [
+      {
+        id: "previsionnel",
+        label: "Prévisionnel",
+        seed: "Fais-moi un prévisionnel de chiffre d'affaires pour 2026.",
+        reply:
+          "Prévisionnel CA 2026 — hypothèse de base :\n\n• 12 transactions (ventes + honoraires) → CA estimé : 180 000 €\n• Dont accession aidée (PSLA/BRS) : 60 % du volume\n• Charges fixes estimées : 52 000 €\n• Résultat net prévisionnel : 87 000 € (marge nette 48 %)\n\nJe vous modélise 3 scénarios (pessimiste / réaliste / optimiste) et je dépose le tableau dans Documents ?",
+      },
+      {
+        id: "kpi",
+        label: "Tableau de bord KPIs",
+        seed: "Propose-moi un tableau de bord KPIs adapté à mon activité.",
+        reply:
+          "KPIs recommandés pour Orizon Accession :\n\n• Volume : nb de transactions / mois, CA mensuel\n• Commercial : nb de RDV, taux de transformation, délai moyen\n• Marketing : portée organique, taux d'engagement, leads entrants\n• Opérationnel : délai moyen instruction dossier, satisfaction client (NPS)\n\nJe vous construis le dashboard Excel avec formules et graphiques auto-mis à jour ?",
+      },
+    ],
+    documents: [
+      { type: "xls", name: "Prévisionnel 2026 — v2", meta: "Tableur · 94 ko" },
+      { type: "pdf", name: "Compte de résultat — T1 2026", meta: "PDF · 156 ko" },
+    ],
+  },
+  {
+    id: "lucas",
+    name: "Lucas",
+    role: "Présentateur",
+    status: "En ligne",
+    avatar: "/avatars/lucas.png",
+    short: "Rédige vos mails types, vos comptes-rendus de RDV et reformule.",
+    intro:
+      "Bonjour Jade ! Lucas ici. Je rédige, reformule et structure tous vos écrits professionnels — mails, comptes rendus, présentations. Quel document on attaque ?",
+    actions: [
+      {
+        id: "courrier",
+        label: "Courrier / Mail",
+        seed: "Rédige un mail de relance pour un prospect qui n'a pas donné suite après un RDV PSLA.",
+        reply:
+          "Voici un mail de relance chaleureux et professionnel :\n\n---\nObjet : Suite à notre échange — programme PSLA [ville]\n\nBonjour [Prénom],\n\nJ'espère que vous allez bien. Suite à notre rendez-vous du [date], je voulais revenir vers vous pour savoir si vous aviez eu le temps de réfléchir à votre projet d'accession.\n\nNous avons encore quelques créneaux disponibles sur le programme de [ville]. N'hésitez pas à me recontacter — je reste disponible pour répondre à toutes vos questions.\n\nBien cordialement,\nJade — Orizon Accession\n---\n\nJe vous propose une variante plus directe ?",
+      },
+      {
+        id: "cr",
+        label: "Compte rendu",
+        seed: "Rédige un compte rendu de RDV client à partir de mes notes.",
+        reply:
+          "Pour rédiger le compte rendu, donnez-moi vos notes brutes (points abordés, décisions, suite à donner) et je les structure en un document professionnel avec : contexte, points clés discutés, décisions prises, prochaines étapes et date de suivi.",
+      },
+    ],
+    documents: [
+      { type: "doc", name: "Modèles de mails — pack 10", meta: "Modèles · 38 ko" },
+      { type: "pdf", name: "CR RDV Famille Moreau — 03/06", meta: "PDF · 88 ko" },
+    ],
+  },
+  {
+    id: "claire",
+    name: "Claire",
+    role: "Juriste",
+    status: "Disponible",
+    avatar: "/avatars/claire.png",
+    short: "Contrats, questions de droit et veille d'actualité sur vos fiches sources.",
+    intro:
+      "Bonjour Jade. Je suis Claire, votre juriste IA. Je rédige contrats et courriers, réponds à vos questions de droit immobilier et assure la veille réglementaire — BRS, PSLA, ANRU. Que puis-je faire pour vous ?",
+    actions: [
+      {
+        id: "contrat",
+        label: "Rédiger un contrat",
+        seed: "Rédige un modèle de contrat de location-accession (PSLA).",
+        reply:
+          "Je prépare la trame du contrat de location-accession conforme au décret n° 2004-esco du 25 mars 2004.\n\nStructure du document :\n1. Parties au contrat\n2. Description du logement (désignation, surface, équipements)\n3. Durée de la phase locative et conditions d'option d'achat\n4. Redevance (fraction locative + fraction acquisitive)\n5. Prix de vente et modalités de levée d'option\n6. Garanties (rachat, relogement)\n7. Clauses particulières\n\nJe vous génère le document complet dans Documents. Je l'adapte à votre programme de Cesson-Sévigné ?",
+      },
+      {
+        id: "veille",
+        label: "Veille réglementaire",
+        seed: "Quoi de neuf sur le BRS en 2025 ?",
+        reply:
+          "Actualité BRS — points clés 2025 :\n\n• Extension du dispositif aux communes hors zones tendues (décret janv. 2025)\n• Plafonds de ressources relevés de 8 % (arrêté mars 2025)\n• Nouvelle obligation d'affichage du prix de cession dans les annonces\n• Jurisprudence : précision sur le droit de préemption de l'OFS\n\nJe vous prépare une note de veille complète à partager avec vos partenaires ?",
+      },
+    ],
+    documents: [
+      { type: "pdf", name: "Modèle contrat PSLA", meta: "PDF · 520 ko" },
+      { type: "doc", name: "Note veille BRS — juin 2025", meta: "Document · 142 ko" },
+      { type: "pdf", name: "Guide ANRU — accession aidée", meta: "PDF · 1,8 Mo" },
     ],
   },
 ];
 
+export const AGENTS_BY_ID = Object.fromEntries(AGENTS.map((a) => [a.id, a]));
+
 export function getAgent(id: string): Agent | undefined {
-  return AGENTS.find((a) => a.id === id);
+  return AGENTS_BY_ID[id];
 }

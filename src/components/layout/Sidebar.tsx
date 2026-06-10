@@ -81,19 +81,16 @@ export function Sidebar() {
         {AGENTS.map((agent) => (
           <NavLink
             key={agent.id}
-            href={agent.href}
+            href={`/agents/${agent.id}`}
             label={`${agent.name} — ${agent.role}`}
             icon={
-              <span
-                className="flex h-4 w-4 items-center justify-center rounded text-[11px]"
-                style={{ color: agent.colorHex }}
-              >
-                {agent.emoji}
+              <span className="flex h-4 w-4 items-center justify-center rounded text-[11px] font-bold text-emerald-400">
+                {agent.name[0]}
               </span>
             }
-            active={pathname.startsWith(agent.href)}
+            active={pathname.startsWith(`/agents/${agent.id}`)}
             collapsed={collapsed}
-            agentColor={agent.colorHex}
+            agentColor="#2FA85F"
           />
         ))}
 

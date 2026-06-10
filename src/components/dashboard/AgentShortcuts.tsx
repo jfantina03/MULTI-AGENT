@@ -14,15 +14,11 @@ export function AgentShortcuts() {
         {AGENTS.map((agent) => (
           <Link
             key={agent.id}
-            href={agent.href}
+            href={`/agents/${agent.id}`}
             className="group flex items-center gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-150 hover:border-surface-border hover:bg-surface-overlay"
           >
-            {/* Avatar */}
-            <div
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-base"
-              style={{ backgroundColor: `${agent.colorHex}18`, border: `1px solid ${agent.colorHex}30` }}
-            >
-              {agent.emoji}
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold bg-emerald-900/30 text-emerald-400">
+              {agent.name[0]}
             </div>
 
             <div className="min-w-0 flex-1">

@@ -44,9 +44,8 @@ export default function BibliothequePage() {
             <button
               key={agent.id}
               className="rounded-lg border border-surface-border px-3 py-1.5 text-xs font-medium text-zinc-500 hover:border-surface-muted hover:text-zinc-300 transition-colors"
-              style={{ "--agent-color": agent.colorHex } as React.CSSProperties}
             >
-              {agent.emoji} {agent.name}
+              {agent.name}
             </button>
           ))}
         </div>
