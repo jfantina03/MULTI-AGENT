@@ -91,6 +91,7 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,38 +101,78 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
     return Math.random().toString(36).slice(2);
   }
 
-  function runAction(actionId: string) {
-    const action = agent.actions.find((a) => a.id === actionId);
-    if (!action) return;
-    setActiveTab(actionId);
-    const userMsg: Message = { id: uid(), role: "user", text: action.seed };
-    setMessages((prev) => [...prev, userMsg]);
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((prev) => [...prev, { id: uid(), role: "agent", text: action.reply }]);
-    }, 1800);
-  }
+  async function callAPI(userMsg: Message) {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
 
-  function sendMessage() {
-    const text = input.trim();
-    if (!text) return;
-    setInput("");
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-    const userMsg: Message = { id: uid(), role: "user", text };
+    const msgsBefore = messages;
     setMessages((prev) => [...prev, userMsg]);
     setTyping(true);
-    setTimeout(() => {
+
+    const agentMsgId = uid();
+    let firstChunk = true;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: abortRef.current.signal,
+        body: JSON.stringify({
+          agentId: agent.id,
+          messages: [...msgsBefore, userMsg],
+        }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        if (firstChunk) {
+          firstChunk = false;
+          setTyping(false);
+          setMessages((prev) => [...prev, { id: agentMsgId, role: "agent", text: "" }]);
+        }
+
+        text += decoder.decode(value, { stream: true });
+        setMessages((prev) =>
+          prev.map((m) => (m.id === agentMsgId ? { ...m, text } : m))
+        );
+      }
+
+      if (firstChunk) setTyping(false);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
       setTyping(false);
       setMessages((prev) => [
         ...prev,
         {
-          id: uid(),
+          id: agentMsgId,
           role: "agent",
-          text: "Bien reçu. Je prends en compte votre demande et reviens vers vous rapidement avec une réponse adaptée.",
+          text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
         },
       ]);
-    }, 1800);
+    }
+  }
+
+  function runAction(actionId: string) {
+    const action = agent.actions.find((a) => a.id === actionId);
+    if (!action) return;
+    setActiveTab(actionId);
+    callAPI({ id: uid(), role: "user", text: action.seed });
+  }
+
+  function sendMessage() {
+    const text = input.trim();
+    if (!text || typing) return;
+    setInput("");
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    callAPI({ id: uid(), role: "user", text });
   }
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -386,14 +427,14 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
                 {/* Send button */}
                 <button
                   onClick={sendMessage}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || typing}
                   style={{
                     flexShrink: 0, width: 40, height: 40,
                     display: "grid", placeItems: "center",
                     borderRadius: "50%", border: "none",
-                    background: input.trim() ? "var(--forest)" : "var(--border)",
-                    color: input.trim() ? "#fff" : "var(--ink-faint)",
-                    cursor: input.trim() ? "pointer" : "default",
+                    background: (input.trim() && !typing) ? "var(--forest)" : "var(--border)",
+                    color: (input.trim() && !typing) ? "#fff" : "var(--ink-faint)",
+                    cursor: (input.trim() && !typing) ? "pointer" : "default",
                     transition: "background .2s ease",
                   }}
                 >
