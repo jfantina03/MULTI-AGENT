@@ -3,8 +3,6 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
-const client = new Anthropic();
-
 const SYSTEM_PROMPTS: Record<string, string> = {
   thomas: `Tu es Thomas, le manager IA de l'agence ORIZON Accession AI, spécialisée dans l'accession aidée à la propriété en Ille-et-Vilaine (35) : BRS (Bail Réel Solidaire), PSLA (Prêt Social Location-Accession) et dispositifs ANRU.
 Tu orchestres une équipe de 6 agents spécialisés : Hugo (Commercial), Lilou (Community Manager), Inès (Analyste Stratégique), Léo (Financier), Lucas (Présentateur), Claire (Juriste).
@@ -51,6 +49,12 @@ interface InputMessage {
 }
 
 export async function POST(req: NextRequest) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error("[chat] ANTHROPIC_API_KEY manquante");
+    return new Response("API key manquante", { status: 500 });
+  }
+
   try {
     const { messages, agentId } = await req.json();
 
@@ -70,26 +74,27 @@ export async function POST(req: NextRequest) {
       return new Response("Invalid messages", { status: 400 });
     }
 
-    const stream = client.messages.stream({
-      model: "claude-opus-4-8",
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: anthropicMessages,
-    });
+    const client = new Anthropic({ apiKey });
+    const encoder = new TextEncoder();
 
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            if (
-              chunk.type === "content_block_delta" &&
-              chunk.delta.type === "text_delta"
-            ) {
-              controller.enqueue(new TextEncoder().encode(chunk.delta.text));
-            }
-          }
+          const stream = client.messages.stream({
+            model: "claude-opus-4-8",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: anthropicMessages,
+          });
+
+          stream.on("text", (text) => {
+            controller.enqueue(encoder.encode(text));
+          });
+
+          await stream.finalMessage();
           controller.close();
         } catch (e) {
+          console.error("[chat] Erreur streaming:", e);
           controller.error(e);
         }
       },
@@ -99,10 +104,10 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
-        "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
+  } catch (e) {
+    console.error("[chat] Erreur route:", e);
     return new Response("Internal Server Error", { status: 500 });
   }
 }
