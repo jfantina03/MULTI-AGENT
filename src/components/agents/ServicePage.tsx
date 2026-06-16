@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { AGENTS } from "@/lib/agents";
 import type { Agent } from "@/lib/agents";
+import { VeilleView } from "./VeilleView";
 
 /* ─── Icons ───────────────────────────────────────── */
 function ArrowLeftIcon() {
@@ -103,6 +104,8 @@ interface ServicePageProps {
   onToggleTheme: () => void;
   onHome: () => void;
 }
+
+const VEILLE_TABS = ["veille-brs-rennes", "veille-brs-france", "veille-ofs"];
 
 /* ─── Service Page ─────────────────────────────────── */
 export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageProps) {
@@ -241,6 +244,7 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
     const action = agent.actions.find((a) => a.id === actionId);
     if (!action) return;
     setActiveTab(actionId);
+    if (VEILLE_TABS.includes(actionId)) return; // veille tabs show grid view, no chat message
     callAPI({ id: uid(), role: "user", text: action.seed });
   }
 
@@ -274,7 +278,8 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
     e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
   }
 
-  const showChat = activeTab !== "docs";
+  const isVeilleTab = VEILLE_TABS.includes(activeTab);
+  const showChat = !isVeilleTab && activeTab !== "docs";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
@@ -594,6 +599,9 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
             </div>
           </>
         )}
+
+        {/* ── Veille view ── */}
+        {isVeilleTab && <VeilleView topic={activeTab} />}
 
         {/* ── Documents view ── */}
         {activeTab === "docs" && (
