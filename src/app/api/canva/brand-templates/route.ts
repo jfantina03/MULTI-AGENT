@@ -9,15 +9,15 @@ export async function GET() {
   if (!accessToken) return NextResponse.json({ connected: false, templates: [] });
 
   try {
-    const res = await fetch("https://api.canva.com/rest/v1/brand-templates?ownership=team&sort_by=modified_descending", {
+    const res = await fetch("https://api.canva.com/rest/v1/brand-templates", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!res.ok) {
+      const errBody = await res.text();
+      console.error("[canva/brand-templates] error:", res.status, errBody);
       if (res.status === 401) return NextResponse.json({ connected: false, templates: [] });
-      // 403 = missing scope — return empty so UI falls back to static buttons
-      console.error("[canva/brand-templates] error:", res.status, await res.text());
-      return NextResponse.json({ connected: true, templates: [], scopeMissing: true });
+      return NextResponse.json({ connected: true, templates: [], scopeMissing: true, debug: `${res.status}: ${errBody.slice(0, 200)}` });
     }
 
     interface BrandTemplate {

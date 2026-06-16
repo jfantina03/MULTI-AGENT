@@ -26,13 +26,22 @@ export async function GET() {
     const folderStatus = folderRes.status;
     const folderBody = await folderRes.text();
 
+    // Test brand templates
+    const btRes = await fetch("https://api.canva.com/rest/v1/brand-templates", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const btStatus = btRes.status;
+    const btBody = await btRes.text();
+
     return NextResponse.json({
       cookie: true,
       tokenPrefix: accessToken.slice(0, 8) + "…",
       profile: profileOk ? { display_name: (profileData as { profile?: { display_name?: string } })?.profile?.display_name } : null,
       profileStatus: profileRes.status,
       folderStatus,
-      folderBody: folderBody.slice(0, 300),
+      folderBody: folderBody.slice(0, 200),
+      brandTemplatesStatus: btStatus,
+      brandTemplatesBody: btBody.slice(0, 300),
     });
   } catch (e) {
     return NextResponse.json({ cookie: true, error: String(e) });
