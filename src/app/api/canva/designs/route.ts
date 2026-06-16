@@ -28,8 +28,20 @@ export async function GET() {
       return NextResponse.json({ connected: false, error: "Canva API error" }, { status: res.status });
     }
 
-    const data = await res.json() as { items?: unknown[] };
-    return NextResponse.json({ connected: true, designs: data.items ?? [] });
+    interface FolderItem {
+      type: string;
+      design?: {
+        id: string;
+        title?: string;
+        thumbnail?: { url?: string };
+        urls?: { view_url?: string; edit_url?: string };
+      };
+    }
+    const data = await res.json() as { items?: FolderItem[] };
+    const designs = (data.items ?? [])
+      .filter((item) => item.type === "DESIGN" && item.design)
+      .map((item) => item.design!);
+    return NextResponse.json({ connected: true, designs });
   } catch (e) {
     console.error("[canva/designs] unexpected error:", e);
     return NextResponse.json({ connected: false, error: "Internal error" }, { status: 500 });
