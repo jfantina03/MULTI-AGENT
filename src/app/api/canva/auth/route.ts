@@ -9,8 +9,16 @@ const REDIRECT_URI =
   process.env.CANVA_REDIRECT_URI ??
   "https://multi-agent-beige-xi.vercel.app/api/canva/callback";
 
+function base64urlEncode(buf: Buffer): string {
+  return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
 export async function GET() {
   const state = crypto.randomBytes(16).toString("hex");
+  const codeVerifier = base64urlEncode(crypto.randomBytes(32));
+  const codeChallenge = base64urlEncode(
+    crypto.createHash("sha256").update(codeVerifier).digest()
+  );
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
@@ -18,6 +26,8 @@ export async function GET() {
     redirect_uri: REDIRECT_URI,
     scope: "design:content:read design:content:write design:meta:read asset:read asset:write profile:read",
     state,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
   });
 
   const authUrl = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;
@@ -27,7 +37,14 @@ export async function GET() {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 600, // 10 minutes
+    maxAge: 600,
+    path: "/",
+  });
+  cookieStore.set("canva_code_verifier", codeVerifier, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 600,
     path: "/",
   });
 

@@ -17,22 +17,19 @@ export async function GET(req: NextRequest) {
 
   const cookieStore = await cookies();
   const storedState = cookieStore.get("canva_oauth_state")?.value;
+  const codeVerifier = cookieStore.get("canva_code_verifier")?.value;
 
-  // Clear the state cookie regardless of outcome
   cookieStore.delete("canva_oauth_state");
+  cookieStore.delete("canva_code_verifier");
 
   if (error) {
     console.error("[canva/callback] OAuth error:", error);
-    return NextResponse.redirect(
-      new URL("/?canva_error=1", req.url)
-    );
+    return NextResponse.redirect(new URL("/?canva_error=1", req.url));
   }
 
-  if (!code || !state || state !== storedState) {
-    console.error("[canva/callback] Invalid state or missing code");
-    return NextResponse.redirect(
-      new URL("/?canva_error=1", req.url)
-    );
+  if (!code || !state || state !== storedState || !codeVerifier) {
+    console.error("[canva/callback] Invalid state, missing code or verifier");
+    return NextResponse.redirect(new URL("/?canva_error=1", req.url));
   }
 
   try {
@@ -42,6 +39,7 @@ export async function GET(req: NextRequest) {
       redirect_uri: REDIRECT_URI,
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
+      code_verifier: codeVerifier,
     });
 
     const tokenRes = await fetch(
