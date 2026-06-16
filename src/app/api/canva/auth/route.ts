@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import crypto from "crypto";
 
 export const runtime = "nodejs";
@@ -32,21 +31,11 @@ export async function GET() {
 
   const authUrl = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;
 
-  const cookieStore = await cookies();
-  cookieStore.set("canva_oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
-  cookieStore.set("canva_code_verifier", codeVerifier, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
+  const isProd = process.env.NODE_ENV === "production";
+  const cookieOpts = `; HttpOnly; Path=/; Max-Age=600; SameSite=Lax${isProd ? "; Secure" : ""}`;
 
-  return NextResponse.redirect(authUrl);
+  const response = NextResponse.redirect(authUrl);
+  response.headers.append("Set-Cookie", `canva_oauth_state=${state}${cookieOpts}`);
+  response.headers.append("Set-Cookie", `canva_code_verifier=${codeVerifier}${cookieOpts}`);
+  return response;
 }
