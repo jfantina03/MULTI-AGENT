@@ -846,6 +846,143 @@ function TabPill({ label, active, onClick, dashed }: { label: string; active: bo
   );
 }
 
+/* ─── Canva Autofill Button (Lilou only) ───────────────── */
+function CanvaAutofillButton({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "picking" | "loading" | "done" | "error">("idle");
+  const [templates, setTemplates] = useState<{ id: string; title?: string }[]>([]);
+  const [editUrl, setEditUrl] = useState<string | null>(null);
+
+  async function launch() {
+    setState("picking");
+    const res = await fetch("/api/canva/brand-templates").catch(() => null);
+    if (!res?.ok) { setState("error"); return; }
+    const data = await res.json() as { templates?: { id: string; title?: string }[] };
+    const tpls = data.templates ?? [];
+    if (tpls.length === 0) { setState("error"); return; }
+    setTemplates(tpls);
+    if (tpls.length === 1) await runAutofill(tpls[0].id);
+  }
+
+  async function runAutofill(templateId: string) {
+    setState("loading");
+    // Fetch field names
+    const dsRes = await fetch(`/api/canva/brand-templates/${templateId}`).catch(() => null);
+    const dsData = dsRes?.ok ? await dsRes.json() as { fields?: Record<string, { type: string }> } : { fields: {} };
+    const fields = dsData.fields ?? {};
+
+    // Map text to fields — smart heuristic
+    const lines = text.split("\n").filter((l) => l.trim());
+    const firstLine = lines[0] ?? "";
+    const rest = lines.slice(1).join("\n").trim();
+    const data: Record<string, { type: "text"; text: string }> = {};
+
+    const fieldNames = Object.entries(fields).filter(([, v]) => v.type === "text").map(([k]) => k);
+    if (fieldNames.length === 0) {
+      // No named fields — try a generic "text" key
+      data["text"] = { type: "text", text };
+    } else if (fieldNames.length === 1) {
+      data[fieldNames[0]] = { type: "text", text };
+    } else {
+      const titleKey = fieldNames.find((k) => /titre|title|head|hook/i.test(k)) ?? fieldNames[0];
+      const bodyKey  = fieldNames.find((k) => /texte|text|body|contenu|desc/i.test(k) && k !== titleKey) ?? fieldNames[1];
+      data[titleKey] = { type: "text", text: firstLine };
+      data[bodyKey]  = { type: "text", text: rest || text };
+      fieldNames.forEach((k) => { if (!data[k]) data[k] = { type: "text", text: "" }; });
+    }
+
+    const autofillRes = await fetch("/api/canva/autofill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ templateId, title: `${firstLine.slice(0, 40)} — Orizon`, data }),
+    }).catch(() => null);
+    if (!autofillRes?.ok) { setState("error"); return; }
+    const { jobId } = await autofillRes.json() as { jobId?: string };
+    if (!jobId) { setState("error"); return; }
+
+    // Poll for result
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const pollRes = await fetch(`/api/canva/autofill?jobId=${jobId}&templateId=${templateId}`).catch(() => null);
+      if (!pollRes?.ok) continue;
+      const poll = await pollRes.json() as { status: string; editUrl?: string };
+      if (poll.status === "success" && poll.editUrl) {
+        setEditUrl(poll.editUrl);
+        setState("done");
+        return;
+      }
+      if (poll.status === "failed") { setState("error"); return; }
+    }
+    setState("error");
+  }
+
+  if (state === "idle") {
+    return (
+      <button
+        onClick={launch}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          marginTop: 10, padding: "7px 14px", borderRadius: 8,
+          background: "var(--forest)", color: "#fff",
+          border: "none", fontWeight: 700, fontSize: 12.5,
+          cursor: "pointer", fontFamily: "inherit",
+        }}
+      >
+        <svg width={13} height={13} viewBox="0 0 40 40" fill="none">
+          <rect width="40" height="40" rx="8" fill="#fff" fillOpacity=".2" />
+          <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fontSize="18" fontWeight="800" fill="#fff" fontFamily="system-ui">C</text>
+        </svg>
+        Créer dans Canva
+      </button>
+    );
+  }
+
+  if (state === "picking" && templates.length > 1) {
+    return (
+      <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <span style={{ width: "100%", fontSize: 12, color: "var(--ink-faint)", fontWeight: 600, marginBottom: 2 }}>Choisir un template :</span>
+        {templates.map((t) => (
+          <button key={t.id} onClick={() => runAutofill(t.id)} style={{
+            padding: "6px 12px", borderRadius: 8,
+            border: "1px solid var(--forest)", background: "transparent",
+            color: "var(--forest)", fontWeight: 600, fontSize: 12.5,
+            cursor: "pointer", fontFamily: "inherit",
+          }}>
+            {t.title ?? t.id}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  if (state === "loading" || (state === "picking" && templates.length <= 1)) {
+    return (
+      <div style={{ marginTop: 10, fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
+        Génération dans Canva…
+      </div>
+    );
+  }
+
+  if (state === "done" && editUrl) {
+    return (
+      <a href={editUrl} target="_blank" rel="noopener noreferrer" style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        marginTop: 10, padding: "7px 14px", borderRadius: 8,
+        background: "rgba(47,168,95,.15)", color: "var(--forest)",
+        border: "1px solid var(--green)", fontWeight: 700, fontSize: 12.5,
+        textDecoration: "none",
+      }}>
+        Ouvrir dans Canva →
+      </a>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 10, fontSize: 12.5, color: "#c0392b" }}>
+      Erreur — réessaie ou crée depuis l&apos;onglet Canva.
+    </div>
+  );
+}
+
 /* ─── Chat Message ─────────────────────────────────── */
 function ChatMessage({
   msg,
@@ -889,6 +1026,9 @@ function ChatMessage({
             }}>
               {renderMarkdown(clean || msg.text)}
             </div>
+            {isLast && agent.id === "lilou" && msg.id !== "intro" && (
+              <CanvaAutofillButton text={clean || msg.text} />
+            )}
           </div>
         </div>
         {isLast && choices.length > 0 && (
