@@ -19,6 +19,10 @@ const TOPIC_LABELS: Record<string, string> = {
   "veille-brs-rennes": "BRS Rennes",
   "veille-brs-france": "BRS France",
   "veille-ofs": "OFS",
+  "veille-diagnostic": "Diagnostic",
+  "veille-immobilier": "Immobilier",
+  "veille-finance": "Finance",
+  "veille-juridique": "Juridique",
 };
 
 const GRADIENTS = [
@@ -195,9 +199,7 @@ export function VeilleView({ topic }: { topic: string }) {
                   fontWeight: 800, color: "#fff", lineHeight: 1.35,
                   overflow: "hidden",
                   display: "-webkit-box",
-                  // @ts-expect-error webkit
                   WebkitLineClamp: i === 0 ? 3 : 4,
-                  // @ts-expect-error webkit
                   WebkitBoxOrient: "vertical",
                 }}>
                   {article.title}
@@ -208,9 +210,7 @@ export function VeilleView({ topic }: { topic: string }) {
                     fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.5,
                     overflow: "hidden",
                     display: "-webkit-box",
-                    // @ts-expect-error webkit
                     WebkitLineClamp: 2,
-                    // @ts-expect-error webkit
                     WebkitBoxOrient: "vertical",
                   }}>
                     {article.description}

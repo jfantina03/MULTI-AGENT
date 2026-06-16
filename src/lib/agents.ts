@@ -1,4 +1,4 @@
-export type AgentId = "thomas" | "hugo" | "lilou" | "ines" | "leo" | "lucas" | "claire";
+export type AgentId = "thomas" | "hugo" | "lilou" | "ines" | "leo" | "lucas" | "claire" | "lea";
 
 export interface AgentAction {
   id: string;
@@ -280,6 +280,47 @@ export const AGENTS: Agent[] = [
       { type: "pdf", name: "Guide ANRU — accession aidée", meta: "PDF · 1,8 Mo" },
       { type: "doc", name: "Note veille BRS Rennes — 2026", meta: "Document · 98 ko" },
       { type: "pdf", name: "OFS agréés Bretagne — liste", meta: "PDF · 64 ko" },
+    ],
+  },
+  {
+    id: "lea",
+    name: "Léa",
+    role: "Reportrice",
+    status: "En direct",
+    avatar: "/avatars/lilou.png",
+    short: "Veille quotidienne sur le diagnostic, l'immobilier, la finance et le juridique.",
+    intro:
+      "Bonjour Jade ! Je suis Léa, votre reportrice. Je surveille l'actualité pour vous — diagnostic, marché immobilier, finance et réglementation. Choisissez un sujet et je vous livre les dernières infos.",
+    actions: [
+      {
+        id: "veille-diagnostic",
+        label: "Diagnostic",
+        seed: "",
+        reply: "",
+      },
+      {
+        id: "veille-immobilier",
+        label: "Immobilier",
+        seed: "",
+        reply: "",
+      },
+      {
+        id: "veille-finance",
+        label: "Finance",
+        seed: "",
+        reply: "",
+      },
+      {
+        id: "veille-juridique",
+        label: "Juridique",
+        seed: "",
+        reply: "",
+      },
+    ],
+    documents: [
+      { type: "pdf", name: "Revue de presse immobilière — juin 2026", meta: "PDF · 320 ko" },
+      { type: "doc", name: "Synthèse DPE & diagnostics — T1 2026", meta: "Document · 88 ko" },
+      { type: "xls", name: "Taux crédit & marché — baromètre mensuel", meta: "Tableur · 64 ko" },
     ],
   },
 ];

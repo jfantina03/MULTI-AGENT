@@ -105,7 +105,10 @@ interface ServicePageProps {
   onHome: () => void;
 }
 
-const VEILLE_TABS = ["veille-brs-rennes", "veille-brs-france", "veille-ofs"];
+const VEILLE_TABS = [
+  "veille-brs-rennes", "veille-brs-france", "veille-ofs",
+  "veille-diagnostic", "veille-immobilier", "veille-finance", "veille-juridique",
+];
 
 /* ─── Service Page ─────────────────────────────────── */
 export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageProps) {
