@@ -29,6 +29,14 @@ function ClipIcon() {
     </svg>
   );
 }
+function MicIcon({ active }: { active?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width={18} height={18}>
+      <rect x="9" y="2" width="6" height="11" rx="3" stroke="currentColor" strokeWidth={2} fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.2 : 0} />
+      <path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+    </svg>
+  );
+}
 function MoonIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" width={17} height={17}>
@@ -186,6 +194,8 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab, ca
   const abortRef = useRef<AbortController | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -341,6 +351,49 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab, ca
     setInput(e.target.value);
     e.target.style.height = "auto";
     e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+  }
+
+  function toggleVoice() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    type SR = new () => {
+      lang: string; continuous: boolean; interimResults: boolean;
+      onresult: ((e: { results: { isFinal: boolean; 0: { transcript: string } }[] }) => void) | null;
+      onerror: (() => void) | null;
+      onend: (() => void) | null;
+      start: () => void; stop: () => void;
+    };
+    const SpeechRecognition = (typeof window !== "undefined")
+      ? ((window as unknown as { SpeechRecognition?: SR; webkitSpeechRecognition?: SR }).SpeechRecognition
+        ?? (window as unknown as { SpeechRecognition?: SR; webkitSpeechRecognition?: SR }).webkitSpeechRecognition)
+      : null;
+    if (!SpeechRecognition) {
+      alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Essaie Chrome ou Safari.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "fr-FR";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map((r) => r[0].transcript).join("");
+      setInput(transcript);
+      if (e.results[e.results.length - 1]?.isFinal) {
+        setListening(false);
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+          textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 140) + "px";
+        }
+      }
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
   }
 
   const isVeilleTab = VEILLE_TABS.includes(activeTab);
@@ -634,6 +687,25 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab, ca
                     accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.md,.json"
                     style={{ display: "none" }}
                   />
+
+                  {/* Mic button */}
+                  <button
+                    onClick={toggleVoice}
+                    title={listening ? "Arrêter l'écoute" : "Dicter un message"}
+                    style={{
+                      flexShrink: 0, width: 38, height: 38,
+                      display: "grid", placeItems: "center",
+                      borderRadius: "50%", border: "none",
+                      background: listening ? "rgba(220,53,69,.12)" : "transparent",
+                      color: listening ? "#e53e3e" : "var(--ink-faint)",
+                      cursor: "pointer", transition: "all .15s ease",
+                      animation: listening ? "pulse 1.2s ease-in-out infinite" : "none",
+                    }}
+                    onMouseEnter={(e) => { if (!listening) e.currentTarget.style.color = "var(--ink-soft)"; }}
+                    onMouseLeave={(e) => { if (!listening) e.currentTarget.style.color = "var(--ink-faint)"; }}
+                  >
+                    <MicIcon active={listening} />
+                  </button>
 
                   <textarea
                     ref={textareaRef}
