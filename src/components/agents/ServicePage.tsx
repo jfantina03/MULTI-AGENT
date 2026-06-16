@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AGENTS } from "@/lib/agents";
 import type { Agent } from "@/lib/agents";
 import { VeilleView } from "./VeilleView";
+import { CanvaPanel } from "../CanvaPanel";
 
 /* ─── Icons ───────────────────────────────────────── */
 function ArrowLeftIcon() {
@@ -417,6 +418,14 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
             onClick={() => runAction(action.id)}
           />
         ))}
+        {/* Canva tab — Lilou only */}
+        {agent.id === "lilou" && (
+          <TabPill
+            label="Canva"
+            active={activeTab === "canva"}
+            onClick={() => setActiveTab("canva")}
+          />
+        )}
         {/* Documents tab — pushed right */}
         <span style={{ marginLeft: "auto", flexShrink: 0 }}>
           <TabPill
@@ -605,6 +614,9 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
 
         {/* ── Veille view ── */}
         {isVeilleTab && <VeilleView topic={activeTab} />}
+
+        {/* ── Canva view (Lilou only) ── */}
+        {activeTab === "canva" && <CanvaPanel />}
 
         {/* ── Documents view ── */}
         {activeTab === "docs" && (
