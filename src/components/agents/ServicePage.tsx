@@ -85,6 +85,14 @@ interface Message {
   id: string;
   role: "agent" | "user";
   text: string;
+  fileName?: string;
+}
+
+interface AttachedFile {
+  name: string;
+  mimeType: string;
+  data: string;   // base64 pour images/PDF, texte brut pour .txt/.csv
+  isText: boolean;
 }
 
 type Tab = "chat" | string; // "chat" | action.id | "docs"
@@ -108,6 +116,8 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -140,12 +150,39 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
     return Math.random().toString(36).slice(2);
   }
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    const isImage = file.type.startsWith("image/");
+    const isPDF = file.type === "application/pdf";
+    const isText = /^text\//.test(file.type) || /\.(txt|csv|md|json)$/.test(file.name);
+    if (!isImage && !isPDF && !isText) {
+      alert("Format non pris en charge. Utilisez : PDF, image (JPG/PNG/WebP) ou fichier texte (.txt .csv .md .json).");
+      return;
+    }
+    if (isText) {
+      const text = await file.text();
+      setAttachedFile({ name: file.name, mimeType: file.type || "text/plain", data: text, isText: true });
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const base64 = (ev.target!.result as string).split(",")[1];
+        setAttachedFile({ name: file.name, mimeType: file.type, data: base64, isText: false });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   async function callAPI(userMsg: Message) {
+    const fileToSend = attachedFile;
+    setAttachedFile(null);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
+    const displayMsg: Message = fileToSend ? { ...userMsg, fileName: fileToSend.name } : userMsg;
     const msgsBefore = messages;
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, displayMsg]);
     setTyping(true);
 
     const agentMsgId = uid();
@@ -159,6 +196,7 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
         body: JSON.stringify({
           agentId: agent.id,
           messages: [...msgsBefore, userMsg],
+          file: fileToSend,
         }),
       });
 
@@ -216,10 +254,11 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
 
   function sendMessage() {
     const text = input.trim();
-    if (!text || typing) return;
+    if (!text && !attachedFile) return;
+    if (typing) return;
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    callAPI({ id: uid(), role: "user", text });
+    callAPI({ id: uid(), role: "user", text: text || "Analyse ce document." });
   }
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -458,8 +497,6 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
               background: "linear-gradient(to top, var(--bg) 70%, transparent)",
             }}>
               <div style={{
-                display: "flex", alignItems: "flex-end", gap: 10,
-                padding: "10px 12px 10px 16px",
                 borderRadius: 22,
                 border: "1.5px solid var(--border-strong)",
                 background: "var(--surface)",
@@ -469,52 +506,90 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
                 onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
                 onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border-strong)")}
               >
-                {/* Clip button */}
-                <button style={{
-                  flexShrink: 0, width: 38, height: 38,
-                  display: "grid", placeItems: "center",
-                  borderRadius: "50%", border: "none",
-                  background: "transparent", color: "var(--ink-faint)",
-                  cursor: "pointer", transition: "color .15s ease",
-                }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-soft)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-faint)")}
-                >
-                  <ClipIcon />
-                </button>
+                {/* File badge */}
+                {attachedFile && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 16px 0",
+                  }}>
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      padding: "4px 10px", borderRadius: 8,
+                      background: "var(--surface-3)", border: "1px solid var(--border)",
+                      fontSize: 12, fontWeight: 600, color: "var(--ink-soft)",
+                      maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>
+                      {attachedFile.name}
+                      <button
+                        onClick={() => setAttachedFile(null)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-faint)", padding: 0, fontSize: 15, lineHeight: 1, fontFamily: "inherit" }}
+                      >×</button>
+                    </span>
+                  </div>
+                )}
 
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={autoResize}
-                  onKeyDown={handleKey}
-                  placeholder={`Message ${agent.name}…`}
-                  rows={1}
-                  style={{
-                    flex: 1, border: "none", outline: "none", resize: "none",
-                    background: "transparent", font: "inherit",
-                    fontSize: 15, color: "var(--ink)",
-                    lineHeight: 1.5, padding: "6px 0",
-                    maxHeight: 140,
-                  }}
-                />
+                {/* Input row */}
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 10, padding: "10px 12px 10px 16px" }}>
+                  {/* Clip button */}
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    title="Joindre un document"
+                    style={{
+                      flexShrink: 0, width: 38, height: 38,
+                      display: "grid", placeItems: "center",
+                      borderRadius: "50%", border: "none",
+                      background: attachedFile ? "var(--green-soft)" : "transparent",
+                      color: attachedFile ? "var(--green)" : "var(--ink-faint)",
+                      cursor: "pointer", transition: "color .15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-soft)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = attachedFile ? "var(--green)" : "var(--ink-faint)")}
+                  >
+                    <ClipIcon />
+                  </button>
 
-                {/* Send button */}
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || typing}
-                  style={{
-                    flexShrink: 0, width: 40, height: 40,
-                    display: "grid", placeItems: "center",
-                    borderRadius: "50%", border: "none",
-                    background: (input.trim() && !typing) ? "var(--forest)" : "var(--border)",
-                    color: (input.trim() && !typing) ? "#fff" : "var(--ink-faint)",
-                    cursor: (input.trim() && !typing) ? "pointer" : "default",
-                    transition: "background .2s ease",
-                  }}
-                >
-                  <SendIcon />
-                </button>
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    onChange={handleFileSelect}
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.md,.json"
+                    style={{ display: "none" }}
+                  />
+
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={autoResize}
+                    onKeyDown={handleKey}
+                    placeholder={attachedFile ? "Ajoutez un message ou envoyez directement…" : `Message ${agent.name}…`}
+                    rows={1}
+                    style={{
+                      flex: 1, border: "none", outline: "none", resize: "none",
+                      background: "transparent", font: "inherit",
+                      fontSize: 15, color: "var(--ink)",
+                      lineHeight: 1.5, padding: "6px 0",
+                      maxHeight: 140,
+                    }}
+                  />
+
+                  {/* Send button */}
+                  <button
+                    onClick={sendMessage}
+                    disabled={(!input.trim() && !attachedFile) || typing}
+                    style={{
+                      flexShrink: 0, width: 40, height: 40,
+                      display: "grid", placeItems: "center",
+                      borderRadius: "50%", border: "none",
+                      background: ((input.trim() || attachedFile) && !typing) ? "var(--forest)" : "var(--border)",
+                      color: ((input.trim() || attachedFile) && !typing) ? "#fff" : "var(--ink-faint)",
+                      cursor: ((input.trim() || attachedFile) && !typing) ? "pointer" : "default",
+                      transition: "background .2s ease",
+                    }}
+                  >
+                    <SendIcon />
+                  </button>
+                </div>
               </div>
             </div>
           </>
@@ -694,6 +769,11 @@ function ChatMessage({
         fontSize: 15, lineHeight: 1.6,
         whiteSpace: "pre-wrap",
       }}>
+        {msg.fileName && (
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.75, marginBottom: 6 }}>
+            Document : {msg.fileName}
+          </div>
+        )}
         {msg.text}
       </div>
     </div>

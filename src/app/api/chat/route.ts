@@ -90,6 +90,13 @@ interface InputMessage {
   text: string;
 }
 
+interface AttachedFileData {
+  name: string;
+  mimeType: string;
+  data: string;
+  isText: boolean;
+}
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -98,11 +105,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages, agentId } = await req.json();
+    const { messages, agentId, file } = await req.json();
 
     const systemPrompt = FORMAT_RULES + (SYSTEM_PROMPTS[agentId as string] ?? SYSTEM_PROMPTS.thomas);
 
-    const anthropicMessages = (messages as InputMessage[])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anthropicMessages: { role: "user" | "assistant"; content: any }[] = (messages as InputMessage[])
       .filter((m) => m.id !== "intro")
       .map((m) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
@@ -116,18 +124,43 @@ export async function POST(req: NextRequest) {
       return new Response("Invalid messages", { status: 400 });
     }
 
+    // Injecter le fichier dans le dernier message utilisateur
+    if (file) {
+      const f = file as AttachedFileData;
+      const last = anthropicMessages[anthropicMessages.length - 1];
+      const text = last.content as string;
+      if (f.isText) {
+        last.content = `[Document joint : ${f.name}]\n\n${f.data}\n\n${text}`;
+      } else if (f.mimeType.startsWith("image/")) {
+        last.content = [
+          { type: "image", source: { type: "base64", media_type: f.mimeType, data: f.data } },
+          { type: "text", text },
+        ];
+      } else if (f.mimeType === "application/pdf") {
+        last.content = [
+          { type: "document", source: { type: "base64", media_type: "application/pdf", data: f.data } },
+          { type: "text", text },
+        ];
+      }
+    }
+
     const client = new Anthropic({ apiKey });
     const encoder = new TextEncoder();
+    const hasPDF = file && (file as AttachedFileData).mimeType === "application/pdf";
 
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          const stream = client.messages.stream({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const streamParams: any = {
             model: "claude-opus-4-8",
-            max_tokens: 1024,
+            max_tokens: file ? 2048 : 1024,
             system: systemPrompt,
             messages: anthropicMessages,
-          });
+          };
+          if (hasPDF) streamParams.betas = ["pdfs-2024-09-25"];
+
+          const stream = client.messages.stream(streamParams);
 
           stream.on("text", (text) => {
             controller.enqueue(encoder.encode(text));
