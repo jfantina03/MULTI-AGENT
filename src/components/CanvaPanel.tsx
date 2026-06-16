@@ -32,10 +32,29 @@ function CanvaIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-function DesignCard({ design }: { design: CanvaDesign }) {
+function DesignCard({ design, onSendToChat }: {
+  design: CanvaDesign;
+  onSendToChat?: (base64: string, mimeType: string, name: string) => void;
+}) {
   const url = design.urls?.edit_url ?? design.urls?.view_url;
   const title = design.title ?? "Sans titre";
+  const thumbUrl = design.thumbnail?.url;
   const [h, setH] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  async function handleSend() {
+    if (!thumbUrl || !onSendToChat) return;
+    setSending(true);
+    try {
+      const res = await fetch(`/api/canva/thumb?url=${encodeURIComponent(thumbUrl)}`);
+      const data = await res.json() as { base64?: string; mimeType?: string };
+      if (data.base64 && data.mimeType) {
+        onSendToChat(data.base64, data.mimeType, title);
+      }
+    } finally {
+      setSending(false);
+    }
+  }
 
   const inner = (
     <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{
@@ -45,15 +64,32 @@ function DesignCard({ design }: { design: CanvaDesign }) {
       transform: h ? "translateY(-2px)" : "none",
       boxShadow: h ? "var(--shadow-lg)" : "var(--shadow)",
       transition: "all .18s ease",
+      position: "relative",
     }}>
       <div style={{ width: "100%", aspectRatio: "1/1", background: "var(--surface-3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {design.thumbnail?.url
+        {thumbUrl
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={design.thumbnail.url} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ? <img src={thumbUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           : <CanvaIcon size={32} />}
       </div>
-      <div style={{ padding: "8px 10px" }}>
-        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</p>
+      <div style={{ padding: "8px 10px 10px" }}>
+        <p style={{ margin: "0 0 6px", fontSize: 12.5, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</p>
+        {onSendToChat && thumbUrl && (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSend(); }}
+            disabled={sending}
+            style={{
+              width: "100%", padding: "5px 0", borderRadius: 7,
+              background: "var(--forest)", color: "#fff",
+              border: "none", fontSize: 11.5, fontWeight: 700,
+              cursor: sending ? "not-allowed" : "pointer",
+              opacity: sending ? 0.6 : 1,
+              fontFamily: "inherit",
+            }}
+          >
+            {sending ? "Envoi…" : "Envoyer à Lilou"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -113,7 +149,7 @@ function CreateButton({ label, icon, designType, onCreated }: {
   );
 }
 
-export function CanvaPanel() {
+export function CanvaPanel({ onSendToChat }: { onSendToChat?: (base64: string, mimeType: string, name: string) => void }) {
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
   const [designs, setDesigns] = useState<CanvaDesign[]>([]);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -227,7 +263,7 @@ export function CanvaPanel() {
         </p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
-          {designs.map((d) => <DesignCard key={d.id} design={d} />)}
+          {designs.map((d) => <DesignCard key={d.id} design={d} onSendToChat={onSendToChat} />)}
         </div>
       )}
     </div>

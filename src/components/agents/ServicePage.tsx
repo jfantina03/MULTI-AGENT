@@ -616,7 +616,15 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
         {isVeilleTab && <VeilleView topic={activeTab} />}
 
         {/* ── Canva view (Lilou only) ── */}
-        {activeTab === "canva" && <CanvaPanel />}
+        {activeTab === "canva" && (
+          <CanvaPanel
+            onSendToChat={(base64, mimeType, name) => {
+              setAttachedFile({ name, mimeType, data: base64, isText: false });
+              setActiveTab("chat");
+              setTimeout(() => textareaRef.current?.focus(), 50);
+            }}
+          />
+        )}
 
         {/* ── Documents view ── */}
         {activeTab === "docs" && (
