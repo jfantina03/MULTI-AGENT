@@ -252,15 +252,34 @@ export const AGENTS: Agent[] = [
       {
         id: "veille",
         label: "Veille réglementaire",
-        seed: "Quoi de neuf sur le BRS en 2025 ?",
-        reply:
-          "Actualité BRS — points clés 2025 :\n\n• Extension du dispositif aux communes hors zones tendues (décret janv. 2025)\n• Plafonds de ressources relevés de 8 % (arrêté mars 2025)\n• Nouvelle obligation d'affichage du prix de cession dans les annonces\n• Jurisprudence : précision sur le droit de préemption de l'OFS\n\nJe vous prépare une note de veille complète à partager avec vos partenaires ?",
+        seed: "Synthèse réglementaire générale : quelles sont les dernières évolutions sur le BRS, le PSLA et l'ANRU à connaître absolument ?",
+        reply: "",
+      },
+      {
+        id: "veille-brs-rennes",
+        label: "Veille BRS Rennes",
+        seed: "Fais une veille informationnelle complète sur le BRS à Rennes et Rennes Métropole : programmes en cours ou récents, OFS locaux actifs, spécificités territoriales, prix plafonds applicables, actualités.",
+        reply: "",
+      },
+      {
+        id: "veille-brs-france",
+        label: "Veille BRS France",
+        seed: "Fais une veille informationnelle nationale sur le BRS : dernières évolutions législatives et réglementaires, statistiques de déploiement, jurisprudence récente, tendances et perspectives du dispositif en France.",
+        reply: "",
+      },
+      {
+        id: "veille-ofs",
+        label: "Veille OFS",
+        seed: "Fais une veille sur les Organismes de Foncier Solidaire (OFS) : cadre juridique, liste des OFS agréés et notamment en Bretagne, actualités, jurisprudence, évolutions de leur agrément et de leur fonctionnement.",
+        reply: "",
       },
     ],
     documents: [
       { type: "pdf", name: "Modèle contrat PSLA", meta: "PDF · 520 ko" },
       { type: "doc", name: "Note veille BRS — juin 2025", meta: "Document · 142 ko" },
       { type: "pdf", name: "Guide ANRU — accession aidée", meta: "PDF · 1,8 Mo" },
+      { type: "doc", name: "Note veille BRS Rennes — 2026", meta: "Document · 98 ko" },
+      { type: "pdf", name: "OFS agréés Bretagne — liste", meta: "PDF · 64 ko" },
     ],
   },
 ];

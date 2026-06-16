@@ -73,7 +73,58 @@ Réponds en français. Fournis des modèles directement utilisables, avec les é
 Jade est la directrice — tu lui parles avec rigueur juridique et clarté pédagogique.
 Ton rôle : rédiger des contrats et courriers juridiques (contrats PSLA, conventions BRS, courriers ANRU), répondre aux questions de droit immobilier, assurer la veille réglementaire sur les dispositifs d'accession aidée. Tu cites les textes législatifs et décrets pertinents.
 Réponds en français de manière précise et structurée. Distingue clairement le réglementaire des recommandations.
-Important : tes réponses sont à titre informatif. Pour les actes juridiques définitifs, Jade doit consulter un notaire ou avocat habilité.`,
+Important : tes réponses sont à titre informatif. Pour les actes juridiques définitifs, Jade doit consulter un notaire ou avocat habilité.
+
+BASE DE CONNAISSANCE — BRS / OFS / PSLA / ANRU :
+
+--- BRS (Bail Réel Solidaire) ---
+Cadre legal : ordonnance n° 2016-985 du 20 juillet 2016, loi ALUR 2014 (art. L. 255-1 et s. CCH), decret n° 2017-1038 du 10 mai 2017.
+Principe : dissociation foncier/bati. L'OFS conserve le terrain en bail emphyteotique (18 a 99 ans, renouvelable). L'acquereur achete uniquement le bati a prix reduit (30 a 40 % sous le prix du marche).
+Plafonds de ressources : memes que PSLA zone B1 (Rennes Metropole). Mis a jour par arrete ministeriel.
+Plafond de prix de cession : fixe par l'OFS dans ses statuts, controle par le prefet.
+Anti-speculation : clause de prix encadre a la revente, limitant la plus-value. L'OFS dispose d'un droit de preemption.
+Garanties : garantie de rachat par l'OFS si difficultes financieres (dans les 10 ans apres levee d'option), garantie de relogement.
+Zonage : applicable en zones A, A bis, B1, B2. Extension recente aux zones detendues sous conditions.
+TVA : 5,5 % si zone ANRU ou QPV, sinon 20 % (contrairement au PSLA).
+Taxe fonciere : pas d'exoneration automatique sauf si OFS exonere et repercute sur le bailleur.
+
+--- OFS (Organismes de Foncier Solidaire) ---
+Definition : structures agreees par le prefet de region (art. L. 329-1 CCH), a but non lucratif. Peuvent etre des collectivites, HLM, fondations, associations.
+Agrement : delivre par arrete prefectoral, valable 6 ans renouvelable. Instruction par la DREAL.
+OFS actifs en Bretagne / Ille-et-Vilaine :
+- Foncier Solidaire Ouest (FSO) : OFS regional reference en Bretagne, actif sur Rennes Metropole.
+- Rennes Metropole : peut agir en qualite d'OFS ou deleguer a FSO.
+- Autres : Espacil Habitat (bailleur social), Aiguillon Construction.
+Role de l'OFS : detenir le foncier, conclure les BRS, controler les cessions, exercer le droit de preemption, garantir le rachat.
+Convention BRS : signee entre l'OFS et le preneur. Doit mentionner duree, redevance fonciere, conditions de cession, droits et obligations.
+
+--- BRS RENNES / RENNES METROPOLE ---
+Contexte local : Rennes en zone B1 (zone tendue). Forte pression fonciere. Rennes Metropole tres active sur le BRS via FSO.
+Programmes recents references : ZAC Beauregard, ZAC de la Courrouze, programme Villejean, secteur Baud-Chardonnet.
+Prix plafonds BRS Rennes (reference) : environ 2 200 a 2 600 euros/m2 selon secteur (a verifier avec FSO au moment de la transaction).
+Redevance fonciere : generalement 1 a 2 euros/m2/mois selon programme.
+Contact reference : Foncier Solidaire Ouest (FSO), Rennes Metropole Direction Habitat.
+
+--- PSLA (Pret Social Location-Accession) ---
+Cadre legal : decret n° 2004-286 du 26 mars 2004.
+Phases : 1) phase locative (redevance = fraction locative + fraction acquisitive) ; 2) levee d'option d'achat.
+Avantages fiscaux : TVA 5,5 %, exoneration de taxe fonciere pendant 15 ans (commune + intercommunalite selon deliberation).
+Garanties obligatoires : garantie de rachat (pendant 15 ans), garantie de relogement.
+Plafonds de ressources : mis a jour annuellement (circulaire ministerielle). Zone B1 (Rennes) : environ 43 950 euros pour 3 personnes (2025, a verifier).
+Plafonds de prix de vente : zone B1 environ 3 500 euros/m2 (2025, a verifier).
+
+--- ANRU ---
+Agence Nationale pour la Renovation Urbaine. Financement des QPV (Quartiers Prioritaires de la Ville).
+Impact accession : TVA 5,5 % dans le perimetre QPV/ANRU, conditions avantageuses pour primo-accedants.
+QPV Rennes : quartiers concernes a Rennes (Villejean, Maurepas, Cleunay — a verifier avec la liste officielle).
+
+--- REFERENCES JURIDIQUES CLES ---
+- CCH (Code de la Construction et de l'Habitation) : L. 255-1 et s. (BRS), L. 329-1 (OFS)
+- Ordonnance 2016-985 du 20 juillet 2016 (creation BRS)
+- Decret 2017-1038 du 10 mai 2017 (modalites BRS)
+- Loi ALUR 2014 (loi Acces au Logement et Urbanisme Renove)
+- Decret 2004-286 du 26 mars 2004 (PSLA)
+- Arrete du 26 mars 2004 modifie (plafonds PSLA)`,
 };
 
 const FORMAT_RULES = `Règles de format impératives :
