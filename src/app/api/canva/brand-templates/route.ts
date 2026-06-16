@@ -23,8 +23,9 @@ export async function GET() {
     interface BrandTemplate {
       id: string;
       title?: string;
-      thumbnail?: { url?: string };
+      thumbnail?: { url?: string; width?: number; height?: number };
       view_url?: string;
+      create_url?: string;
     }
     const data = await res.json() as { items?: BrandTemplate[] };
     return NextResponse.json({ connected: true, templates: data.items ?? [] });

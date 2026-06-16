@@ -12,7 +12,9 @@ interface CanvaDesign {
 interface BrandTemplate {
   id: string;
   title?: string;
-  thumbnail?: { url?: string };
+  thumbnail?: { url?: string; width?: number; height?: number };
+  create_url?: string;
+  view_url?: string;
 }
 
 interface DesignsResponse {
@@ -103,26 +105,15 @@ function DesignCard({ design, onSendToChat }: {
 }
 
 function TemplateCard({ template, onCreated }: { template: BrandTemplate; onCreated: () => void }) {
-  const [loading, setLoading] = useState(false);
   const [h, setH] = useState(false);
   const title = template.title ?? "Template";
   const thumbUrl = template.thumbnail?.url;
 
-  async function handleCreate() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/canva/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: `${title} — Orizon`, brandTemplateId: template.id }),
-      });
-      const data = await res.json() as { ok?: boolean; editUrl?: string };
-      if (data.ok && data.editUrl) {
-        window.open(data.editUrl, "_blank");
-        onCreated();
-      }
-    } finally {
-      setLoading(false);
+  function handleCreate() {
+    const url = template.create_url ?? template.view_url;
+    if (url) {
+      window.open(url, "_blank");
+      onCreated();
     }
   }
 
@@ -146,13 +137,13 @@ function TemplateCard({ template, onCreated }: { template: BrandTemplate; onCrea
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           {h && (
-            <button onClick={handleCreate} disabled={loading} style={{
+            <button onClick={handleCreate} style={{
               padding: "8px 18px", borderRadius: 8,
               background: "var(--forest)", color: "#fff",
               border: "none", fontWeight: 700, fontSize: 13,
-              cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit",
+              cursor: "pointer", fontFamily: "inherit",
             }}>
-              {loading ? "Création…" : "Utiliser ce template"}
+              Utiliser ce template
             </button>
           )}
         </div>
