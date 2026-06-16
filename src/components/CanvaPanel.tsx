@@ -2,423 +2,234 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-/* ── Types ────────────────────────────────────────────────── */
 interface CanvaDesign {
   id: string;
   title?: string;
-  thumbnail?: {
-    url?: string;
-    width?: number;
-    height?: number;
-  };
-  urls?: {
-    view_url?: string;
-    edit_url?: string;
-  };
-  created_at?: number;
-  updated_at?: number;
+  thumbnail?: { url?: string };
+  urls?: { view_url?: string; edit_url?: string };
 }
 
 interface DesignsResponse {
   connected: boolean;
   designs?: CanvaDesign[];
-  error?: string;
 }
 
-/* ── Skeleton ─────────────────────────────────────────────── */
-function DesignSkeleton() {
+const CREATE_TYPES = [
+  { label: "Post Instagram", designType: "SocialMedia", icon: "📷" },
+  { label: "Story / Réel", designType: "InstagramStory", icon: "🎬" },
+  { label: "Post LinkedIn", designType: "LinkedInPost", icon: "💼" },
+  { label: "Carrousel", designType: "Presentation", icon: "🖼️" },
+];
+
+function CanvaIcon({ size = 20 }: { size?: number }) {
   return (
-    <div
-      style={{
-        background: "var(--surface-3)",
-        borderRadius: 12,
-        overflow: "hidden",
-        border: "1px solid var(--border-strong)",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          aspectRatio: "16/9",
-          background: "linear-gradient(90deg, var(--surface-3) 0%, var(--surface-2) 50%, var(--surface-3) 100%)",
-          backgroundSize: "200% 100%",
-          animation: "canva-shimmer 1.4s ease infinite",
-        }}
-      />
-      <div style={{ padding: "10px 12px" }}>
-        <div
-          style={{
-            height: 12,
-            width: "70%",
-            borderRadius: 6,
-            background: "linear-gradient(90deg, var(--surface-3) 0%, var(--surface-2) 50%, var(--surface-3) 100%)",
-            backgroundSize: "200% 100%",
-            animation: "canva-shimmer 1.4s ease infinite",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ── Design Card ──────────────────────────────────────────── */
-function DesignCard({ design }: { design: CanvaDesign }) {
-  const [hovered, setHovered] = useState(false);
-  const editUrl = design.urls?.edit_url ?? design.urls?.view_url;
-  const title = design.title ?? "Sans titre";
-  const thumbUrl = design.thumbnail?.url;
-
-  const card = (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "var(--surface)",
-        border: `1px solid ${hovered ? "var(--green)" : "var(--border-strong)"}`,
-        borderRadius: 12,
-        overflow: "hidden",
-        cursor: editUrl ? "pointer" : "default",
-        transition: "border-color .18s ease, box-shadow .18s ease, transform .18s ease",
-        boxShadow: hovered ? "var(--shadow-lg)" : "var(--shadow)",
-        transform: hovered ? "translateY(-2px)" : "translateY(0)",
-      }}
-    >
-      {/* Thumbnail */}
-      <div
-        style={{
-          width: "100%",
-          aspectRatio: "16/9",
-          background: "var(--surface-3)",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {thumbUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbUrl}
-            alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <CanvaLogoIcon size={32} color="var(--ink-soft)" />
-        )}
-      </div>
-
-      {/* Title */}
-      <div style={{ padding: "10px 12px" }}>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            fontWeight: 600,
-            color: "var(--ink)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-          title={title}
-        >
-          {title}
-        </p>
-      </div>
-    </div>
-  );
-
-  if (editUrl) {
-    return (
-      <a
-        href={editUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ textDecoration: "none", display: "block" }}
-      >
-        {card}
-      </a>
-    );
-  }
-
-  return card;
-}
-
-/* ── Canva Logo SVG ───────────────────────────────────────── */
-function CanvaLogoIcon({ size = 24, color = "currentColor" }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="60" height="60" rx="12" fill={color} fillOpacity="0.15" />
-      <text
-        x="50%"
-        y="54%"
-        dominantBaseline="middle"
-        textAnchor="middle"
-        fontSize="22"
-        fontWeight="700"
-        fill={color}
-        fontFamily="Plus Jakarta Sans, system-ui, sans-serif"
-      >
-        C
-      </text>
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="8" fill="var(--green)" fillOpacity=".15" />
+      <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle"
+        fontSize="16" fontWeight="800" fill="var(--green)"
+        fontFamily="Plus Jakarta Sans, system-ui">C</text>
     </svg>
   );
 }
 
-/* ── Main Component ───────────────────────────────────────── */
+function DesignCard({ design }: { design: CanvaDesign }) {
+  const url = design.urls?.edit_url ?? design.urls?.view_url;
+  const title = design.title ?? "Sans titre";
+  const [h, setH] = useState(false);
+
+  const inner = (
+    <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{
+      borderRadius: 12, overflow: "hidden",
+      border: `1px solid ${h ? "var(--green)" : "var(--border-strong)"}`,
+      background: "var(--surface)",
+      transform: h ? "translateY(-2px)" : "none",
+      boxShadow: h ? "var(--shadow-lg)" : "var(--shadow)",
+      transition: "all .18s ease",
+    }}>
+      <div style={{ width: "100%", aspectRatio: "1/1", background: "var(--surface-3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {design.thumbnail?.url
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={design.thumbnail.url} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          : <CanvaIcon size={32} />}
+      </div>
+      <div style={{ padding: "8px 10px" }}>
+        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</p>
+      </div>
+    </div>
+  );
+
+  return url
+    ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>{inner}</a>
+    : inner;
+}
+
+function CreateButton({ label, icon, designType, onCreated }: {
+  label: string; icon: string; designType: string; onCreated: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [h, setH] = useState(false);
+
+  async function handleCreate() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/canva/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: `${label} — Orizon`, designType }),
+      });
+      const data = await res.json() as { ok?: boolean; editUrl?: string };
+      if (data.ok && data.editUrl) {
+        window.open(data.editUrl, "_blank");
+        onCreated();
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleCreate}
+      disabled={loading}
+      onMouseEnter={() => setH(true)}
+      onMouseLeave={() => setH(false)}
+      style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "10px 16px", borderRadius: 10,
+        border: `1px solid ${h ? "var(--forest)" : "var(--border-strong)"}`,
+        background: h ? "var(--forest)" : "var(--surface)",
+        color: h ? "#fff" : "var(--ink)",
+        fontWeight: 600, fontSize: 13.5,
+        cursor: loading ? "not-allowed" : "pointer",
+        opacity: loading ? 0.6 : 1,
+        transition: "all .15s ease",
+        fontFamily: "inherit",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span style={{ fontSize: 16 }}>{icon}</span>
+      {loading ? "Création…" : label}
+    </button>
+  );
+}
+
 export function CanvaPanel() {
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
   const [designs, setDesigns] = useState<CanvaDesign[]>([]);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  const fetchDesigns = useCallback(async () => {
+  const load = useCallback(async () => {
     setStatus("loading");
     try {
       const res = await fetch("/api/canva/designs");
       const data: DesignsResponse = await res.json();
-      if (data.connected) {
-        setDesigns(data.designs ?? []);
-        setStatus("connected");
-      } else {
-        setStatus("disconnected");
-      }
+      setDesigns(data.designs ?? []);
+      setStatus(data.connected ? "connected" : "disconnected");
     } catch {
       setStatus("disconnected");
     }
   }, []);
 
-  useEffect(() => {
-    fetchDesigns();
-  }, [fetchDesigns]);
+  useEffect(() => { load(); }, [load]);
 
-  async function handleDisconnect() {
+  async function disconnect() {
     setDisconnecting(true);
-    try {
-      await fetch("/api/canva/disconnect", { method: "POST" });
-    } finally {
-      setDisconnecting(false);
-      setDesigns([]);
-      setStatus("disconnected");
-    }
+    await fetch("/api/canva/disconnect", { method: "POST" });
+    setDesigns([]);
+    setStatus("disconnected");
+    setDisconnecting(false);
   }
 
-  /* ── Loading State ── */
+  /* Header */
+  const header = (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      <CanvaIcon size={36} />
+      <div>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-faint)" }}>
+          Intégration
+        </p>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>Canva</h3>
+      </div>
+      {status === "connected" && (
+        <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999, background: "rgba(47,168,95,.15)", color: "var(--green)" }}>
+          Connecté
+        </span>
+      )}
+    </div>
+  );
+
   if (status === "loading") {
     return (
-      <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-strong)",
-          borderRadius: "var(--radius)",
-          padding: 24,
-        }}
-      >
-        <PanelHeader />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: 12,
-            marginTop: 20,
-          }}
-        >
-          {Array.from({ length: 6 }).map((_, i) => (
-            <DesignSkeleton key={i} />
+      <div style={{ paddingTop: 24, paddingBottom: 40 }}>
+        {header}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} style={{ borderRadius: 12, background: "var(--surface-3)", aspectRatio: "1/1" }} />
           ))}
         </div>
-        <style>{shimmerKeyframes}</style>
       </div>
     );
   }
 
-  /* ── Disconnected State ── */
   if (status === "disconnected") {
     return (
-      <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-strong)",
-          borderRadius: "var(--radius)",
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: 16,
-        }}
-      >
-        <PanelHeader />
-        <p style={{ margin: 0, fontSize: 14, color: "var(--ink-soft)", lineHeight: 1.5 }}>
-          Connectez votre compte Canva pour accéder à vos créations directement depuis Orizon.
+      <div style={{ paddingTop: 24, paddingBottom: 40 }}>
+        {header}
+        <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--ink-soft)", lineHeight: 1.6 }}>
+          Connectez votre compte Canva pour créer des visuels directement depuis Orizon et accéder à vos designs.
         </p>
-        <a
-          href="/api/canva/auth"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 18px",
-            borderRadius: 10,
-            background: "var(--forest)",
-            color: "var(--hero-ink)",
-            fontWeight: 700,
-            fontSize: 14,
-            textDecoration: "none",
-            border: "none",
-            cursor: "pointer",
-            transition: "opacity .15s ease, transform .15s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "0.88";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          <CanvaLogoIcon size={18} color="#A7EFA6" />
+        <a href="/api/canva/auth" style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "11px 20px", borderRadius: 10,
+          background: "var(--forest)", color: "#fff",
+          fontWeight: 700, fontSize: 14, textDecoration: "none",
+        }}>
+          <CanvaIcon size={18} />
           Connecter Canva
         </a>
       </div>
     );
   }
 
-  /* ── Connected State ── */
   return (
-    <div
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border-strong)",
-        borderRadius: "var(--radius)",
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <PanelHeader badge="Connecté" />
-        <button
-          onClick={handleDisconnect}
-          disabled={disconnecting}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "7px 14px",
-            borderRadius: 8,
-            background: "transparent",
-            color: "var(--ink-soft)",
-            fontWeight: 600,
-            fontSize: 13,
-            border: "1px solid var(--border-strong)",
-            cursor: disconnecting ? "not-allowed" : "pointer",
-            opacity: disconnecting ? 0.6 : 1,
-            transition: "background .15s ease, color .15s ease",
-          }}
-          onMouseEnter={(e) => {
-            if (!disconnecting) {
-              e.currentTarget.style.background = "var(--surface-3)";
-              e.currentTarget.style.color = "var(--ink)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "var(--ink-soft)";
-          }}
-        >
-          {disconnecting ? "Déconnexion…" : "Déconnecter"}
+    <div style={{ paddingTop: 24, paddingBottom: 40 }}>
+      {header}
+
+      {/* Create buttons */}
+      <div style={{ marginBottom: 28 }}>
+        <p style={{ margin: "0 0 12px", fontSize: 11, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-faint)" }}>
+          Créer un nouveau design
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {CREATE_TYPES.map((t) => (
+            <CreateButton key={t.designType} {...t} onCreated={load} />
+          ))}
+        </div>
+      </div>
+
+      {/* Existing designs */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-faint)" }}>
+          Mes designs récents
+        </p>
+        <button onClick={disconnect} disabled={disconnecting} style={{
+          background: "none", border: "none", fontSize: 12.5,
+          color: "var(--ink-faint)", cursor: "pointer", fontFamily: "inherit",
+          fontWeight: 600,
+        }}>
+          {disconnecting ? "…" : "Déconnecter"}
         </button>
       </div>
 
       {designs.length === 0 ? (
-        <p
-          style={{
-            margin: "20px 0 0",
-            fontSize: 14,
-            color: "var(--ink-soft)",
-            textAlign: "center",
-            padding: "24px 0",
-          }}
-        >
-          Aucun design trouvé dans votre compte Canva.
+        <p style={{ fontSize: 14, color: "var(--ink-soft)", padding: "20px 0", textAlign: "center" }}>
+          Aucun design trouvé. Créez votre premier design ci-dessus.
         </p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: 12,
-            marginTop: 20,
-          }}
-        >
-          {designs.map((design) => (
-            <DesignCard key={design.id} design={design} />
-          ))}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+          {designs.map((d) => <DesignCard key={d.id} design={d} />)}
         </div>
       )}
     </div>
   );
 }
-
-/* ── Panel Header ─────────────────────────────────────────── */
-function PanelHeader({ badge }: { badge?: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 9,
-          background: "var(--surface-3)",
-          border: "1px solid var(--border-strong)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <CanvaLogoIcon size={20} color="var(--green)" />
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 700,
-            color: "var(--ink)",
-            letterSpacing: "-.01em",
-          }}
-        >
-          Canva
-        </span>
-        {badge && (
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              padding: "2px 8px",
-              borderRadius: 999,
-              background: "rgba(47,168,95,.15)",
-              color: "var(--green)",
-              letterSpacing: ".02em",
-            }}
-          >
-            {badge}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ── Shimmer animation ────────────────────────────────────── */
-const shimmerKeyframes = `
-@keyframes canva-shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-`;
