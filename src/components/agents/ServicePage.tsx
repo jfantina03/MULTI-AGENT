@@ -83,9 +83,16 @@ function renderMarkdown(text: string): React.ReactNode {
   function flushList() {
     if (listItems.length === 0) return;
     nodes.push(
-      <ul key={`ul-${nodes.length}`} style={{ margin: "4px 0 8px", paddingLeft: 20 }}>
+      <ul key={`ul-${nodes.length}`} style={{ margin: "6px 0 10px", paddingLeft: 0, listStyle: "none" }}>
         {listItems.map((item, i) => (
-          <li key={i} style={{ marginBottom: 3 }}>{inlineFormat(item)}</li>
+          <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 5 }}>
+            <span style={{
+              flexShrink: 0, marginTop: 6,
+              width: 6, height: 6, borderRadius: "50%",
+              background: "var(--green)", display: "inline-block",
+            }} />
+            <span style={{ flex: 1, lineHeight: 1.55 }}>{inlineFormat(item)}</span>
+          </li>
         ))}
       </ul>
     );
@@ -96,7 +103,7 @@ function renderMarkdown(text: string): React.ReactNode {
     const parts = line.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((p, i) =>
       p.startsWith("**") && p.endsWith("**")
-        ? <strong key={i}>{p.slice(2, -2)}</strong>
+        ? <strong key={i} style={{ fontWeight: 700, color: "var(--ink)" }}>{p.slice(2, -2)}</strong>
         : p
     );
   }
@@ -106,20 +113,20 @@ function renderMarkdown(text: string): React.ReactNode {
       flushList();
       const level = line.match(/^(#{1,3}) /)?.[1].length ?? 1;
       const content = line.replace(/^#{1,3} /, "");
-      const size = level === 1 ? 16 : level === 2 ? 15 : 14;
+      const size = level === 1 ? 15 : 14;
       nodes.push(
-        <p key={i} style={{ margin: "10px 0 4px", fontSize: size, fontWeight: 800, color: "var(--ink)" }}>
+        <p key={i} style={{ margin: "12px 0 4px", fontSize: size, fontWeight: 800, color: "var(--ink)", letterSpacing: "-.01em" }}>
           {inlineFormat(content)}
         </p>
       );
-    } else if (/^- /.test(line)) {
-      listItems.push(line.replace(/^- /, ""));
+    } else if (/^[-•] /.test(line)) {
+      listItems.push(line.replace(/^[-•] /, ""));
     } else if (line.trim() === "") {
       flushList();
-      if (nodes.length > 0) nodes.push(<br key={`br-${i}`} />);
+      if (nodes.length > 0) nodes.push(<div key={`sp-${i}`} style={{ height: 6 }} />);
     } else {
       flushList();
-      nodes.push(<p key={i} style={{ margin: "2px 0" }}>{inlineFormat(line)}</p>);
+      nodes.push(<p key={i} style={{ margin: "2px 0", lineHeight: 1.55 }}>{inlineFormat(line)}</p>);
     }
   });
   flushList();
@@ -463,8 +470,8 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab, ca
       }}>
         {/* Discussion tab */}
         <TabPill label="Discussion" active={activeTab === "chat"} onClick={() => setActiveTab("chat")} />
-        {/* Action tabs */}
-        {agent.actions.map((action) => (
+        {/* Action tabs — not shown for Lilou (context must come from chat) */}
+        {agent.id !== "lilou" && agent.actions.map((action) => (
           <TabPill
             key={action.id}
             label={action.label}
