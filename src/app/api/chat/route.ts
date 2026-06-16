@@ -136,9 +136,10 @@ QPV Rennes : quartiers concernes a Rennes (Villejean, Maurepas, Cleunay — a ve
 };
 
 const FORMAT_RULES = `Règles de format impératives :
-- Texte brut uniquement : aucun emoji, aucun markdown (pas de **, *, #, _, ~, etc.).
-- Listes avec tirets simples (-), jamais de bullets spéciaux.
-- Réponses courtes, directes et sans fioritures.
+- Aucun emoji, jamais.
+- Mise en forme autorisée : **texte en gras** pour les points importants, titres avec ## ou ###, listes avec tirets (-).
+- Sauts de ligne entre les sections pour aérer.
+- Réponses structurées, claires et directes.
 - Quand tu poses une question avec des choix possibles, termine le message par cette balise sur une nouvelle ligne : [Choix: option1 | option2 | option3] (4 options max).
 
 `;

@@ -74,6 +74,58 @@ function FileIcon({ type }: { type: "pdf" | "doc" | "xls" | "img" }) {
 }
 
 /* ─── Quick reply parser ───────────────────────────── */
+/* ─── Markdown renderer ─────────────────────────────── */
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let listItems: string[] = [];
+
+  function flushList() {
+    if (listItems.length === 0) return;
+    nodes.push(
+      <ul key={`ul-${nodes.length}`} style={{ margin: "4px 0 8px", paddingLeft: 20 }}>
+        {listItems.map((item, i) => (
+          <li key={i} style={{ marginBottom: 3 }}>{inlineFormat(item)}</li>
+        ))}
+      </ul>
+    );
+    listItems = [];
+  }
+
+  function inlineFormat(line: string): React.ReactNode {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((p, i) =>
+      p.startsWith("**") && p.endsWith("**")
+        ? <strong key={i}>{p.slice(2, -2)}</strong>
+        : p
+    );
+  }
+
+  lines.forEach((line, i) => {
+    if (/^#{1,3} /.test(line)) {
+      flushList();
+      const level = line.match(/^(#{1,3}) /)?.[1].length ?? 1;
+      const content = line.replace(/^#{1,3} /, "");
+      const size = level === 1 ? 16 : level === 2 ? 15 : 14;
+      nodes.push(
+        <p key={i} style={{ margin: "10px 0 4px", fontSize: size, fontWeight: 800, color: "var(--ink)" }}>
+          {inlineFormat(content)}
+        </p>
+      );
+    } else if (/^- /.test(line)) {
+      listItems.push(line.replace(/^- /, ""));
+    } else if (line.trim() === "") {
+      flushList();
+      if (nodes.length > 0) nodes.push(<br key={`br-${i}`} />);
+    } else {
+      flushList();
+      nodes.push(<p key={i} style={{ margin: "2px 0" }}>{inlineFormat(line)}</p>);
+    }
+  });
+  flushList();
+  return <>{nodes}</>;
+}
+
 function parseChoices(text: string): { clean: string; choices: string[] } {
   const match = text.match(/\[Choix:\s*([^\]]+)\]/i);
   if (!match) return { clean: text, choices: [] };
@@ -753,9 +805,8 @@ function ChatMessage({
               boxShadow: "var(--shadow)",
               border: "1px solid var(--border)",
               fontSize: 15, lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
             }}>
-              {clean || msg.text}
+              {renderMarkdown(clean || msg.text)}
             </div>
           </div>
         </div>
