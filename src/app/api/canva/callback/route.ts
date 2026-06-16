@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/?agent=lilou&tab=canva", req.url));
   } catch (e) {
     console.error("[canva/callback] Unexpected error:", e);
     return NextResponse.redirect(new URL("/?canva_error=1", req.url));

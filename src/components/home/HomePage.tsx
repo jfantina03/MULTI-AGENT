@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { AGENTS } from "@/lib/agents";
 import type { Agent } from "@/lib/agents";
@@ -59,12 +59,22 @@ function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }
 export function HomePage() {
   const [dark, setDark] = useState(false);
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
+  const initialTabRef = useRef<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("orizon-theme");
     if (saved === "dark") {
       setDark(true);
       document.documentElement.setAttribute("data-theme", "dark");
+    }
+    // Auto-open agent after Canva OAuth redirect (?agent=lilou&tab=canva)
+    const params = new URLSearchParams(window.location.search);
+    const agentParam = params.get("agent");
+    const tabParam = params.get("tab");
+    if (agentParam) {
+      initialTabRef.current = tabParam;
+      setActiveAgent(agentParam);
+      window.history.replaceState({}, "", "/");
     }
   }, []);
 
@@ -89,6 +99,7 @@ export function HomePage() {
           dark={dark}
           onToggleTheme={toggleTheme}
           onHome={() => setActiveAgent(null)}
+          initialTab={initialTabRef.current ?? undefined}
         />
       );
     }

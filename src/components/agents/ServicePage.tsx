@@ -104,6 +104,7 @@ interface ServicePageProps {
   dark: boolean;
   onToggleTheme: () => void;
   onHome: () => void;
+  initialTab?: string;
 }
 
 const VEILLE_TABS = [
@@ -112,9 +113,9 @@ const VEILLE_TABS = [
 ];
 
 /* ─── Service Page ─────────────────────────────────── */
-export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageProps) {
+export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab }: ServicePageProps) {
   const thomas = AGENTS.find((a) => a.isManager)!;
-  const [activeTab, setActiveTab] = useState<Tab>("chat");
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "chat");
   const [messages, setMessages] = useState<Message[]>([
     { id: "intro", role: "agent", text: agent.intro },
   ]);
