@@ -287,7 +287,7 @@ export const AGENTS: Agent[] = [
     name: "Léa",
     role: "Reportrice",
     status: "En direct",
-    avatar: "/avatars/lilou.png",
+    avatar: "/avatars/lea.jpeg",
     short: "Veille quotidienne sur le diagnostic, l'immobilier, la finance et le juridique.",
     intro:
       "Bonjour Jade ! Je suis Léa, votre reportrice. Je surveille l'actualité pour vous — diagnostic, marché immobilier, finance et réglementation. Choisissez un sujet et je vous livre les dernières infos.",
