@@ -17,6 +17,9 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
+  console.log("[canva/callback] received code:", !!code, "state:", !!state, "error:", error);
+  console.log("[canva/callback] CLIENT_ID set:", !!CLIENT_ID, "CLIENT_SECRET set:", !!CLIENT_SECRET);
+
   if (error || !code || !state) {
     console.error("[canva/callback] missing code/state or Canva error:", error);
     return NextResponse.redirect(new URL(ERR, req.url));
@@ -27,6 +30,7 @@ export async function GET(req: NextRequest) {
   try {
     const decoded = JSON.parse(Buffer.from(state, "base64url").toString()) as { cv?: string };
     codeVerifier = decoded.cv;
+    console.log("[canva/callback] code_verifier extracted:", !!codeVerifier);
   } catch {
     console.error("[canva/callback] could not decode state");
   }
@@ -39,6 +43,7 @@ export async function GET(req: NextRequest) {
     client_secret: CLIENT_SECRET,
   };
   if (codeVerifier) bodyParams.code_verifier = codeVerifier;
+  console.log("[canva/callback] token exchange params:", { grant_type: "authorization_code", redirect_uri: REDIRECT_URI, client_id: CLIENT_ID, has_verifier: !!codeVerifier });
 
   try {
     const tokenRes = await fetch("https://api.canva.com/rest/v1/oauth/token", {
@@ -50,7 +55,11 @@ export async function GET(req: NextRequest) {
     if (!tokenRes.ok) {
       const err = await tokenRes.text();
       console.error("[canva/callback] token exchange failed:", tokenRes.status, err);
-      return NextResponse.redirect(new URL(ERR, req.url));
+      let errCode = "unknown";
+      try { errCode = (JSON.parse(err) as { error?: string }).error ?? tokenRes.status.toString(); } catch { errCode = tokenRes.status.toString(); }
+      const errUrl = new URL(ERR, req.url);
+      errUrl.searchParams.set("canva_err_detail", errCode);
+      return NextResponse.redirect(errUrl);
     }
 
     const tokenData = await tokenRes.json() as {

@@ -149,7 +149,7 @@ function CreateButton({ label, icon, designType, onCreated }: {
   );
 }
 
-export function CanvaPanel({ onSendToChat }: { onSendToChat?: (base64: string, mimeType: string, name: string) => void }) {
+export function CanvaPanel({ onSendToChat, oauthError }: { onSendToChat?: (base64: string, mimeType: string, name: string) => void; oauthError?: boolean | string }) {
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
   const [designs, setDesigns] = useState<CanvaDesign[]>([]);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -211,6 +211,19 @@ export function CanvaPanel({ onSendToChat }: { onSendToChat?: (base64: string, m
     return (
       <div style={{ paddingTop: 24, paddingBottom: 40 }}>
         {header}
+        {oauthError && (
+          <div style={{
+            marginBottom: 16, padding: "10px 14px", borderRadius: 10,
+            background: "rgba(220,53,69,.1)", border: "1px solid rgba(220,53,69,.3)",
+            fontSize: 13, color: "#c0392b", lineHeight: 1.5,
+          }}>
+            <strong>Erreur de connexion Canva.</strong>{" "}
+            {typeof oauthError === "string"
+              ? <>Code : <code style={{ background: "rgba(220,53,69,.15)", padding: "1px 4px", borderRadius: 4 }}>{oauthError}</code> — </>
+              : null}
+            Vérifie que le Client ID et Secret dans Vercel sont à jour, puis réessaie.
+          </div>
+        )}
         <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--ink-soft)", lineHeight: 1.6 }}>
           Connectez votre compte Canva pour créer des visuels directement depuis Orizon et accéder à vos designs.
         </p>

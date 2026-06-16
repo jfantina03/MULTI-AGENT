@@ -60,6 +60,7 @@ export function HomePage() {
   const [dark, setDark] = useState(false);
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const initialTabRef = useRef<string | null>(null);
+  const canvaErrorRef = useRef<boolean | string>(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("orizon-theme");
@@ -71,8 +72,11 @@ export function HomePage() {
     const params = new URLSearchParams(window.location.search);
     const agentParam = params.get("agent");
     const tabParam = params.get("tab");
+    const canvaError = params.get("canva_error");
+    const canvaErrDetail = params.get("canva_err_detail");
     if (agentParam) {
       initialTabRef.current = tabParam;
+      canvaErrorRef.current = canvaError === "1" ? (canvaErrDetail ?? true) : false;
       setActiveAgent(agentParam);
       window.history.replaceState({}, "", "/");
     }
@@ -100,6 +104,7 @@ export function HomePage() {
           onToggleTheme={toggleTheme}
           onHome={() => setActiveAgent(null)}
           initialTab={initialTabRef.current ?? undefined}
+          canvaError={canvaErrorRef.current}
         />
       );
     }

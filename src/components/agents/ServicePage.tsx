@@ -157,6 +157,7 @@ interface ServicePageProps {
   onToggleTheme: () => void;
   onHome: () => void;
   initialTab?: string;
+  canvaError?: boolean | string;
 }
 
 const VEILLE_TABS = [
@@ -165,7 +166,7 @@ const VEILLE_TABS = [
 ];
 
 /* ─── Service Page ─────────────────────────────────── */
-export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab }: ServicePageProps) {
+export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab, canvaError }: ServicePageProps) {
   const thomas = AGENTS.find((a) => a.isManager)!;
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? "chat");
   const [messages, setMessages] = useState<Message[]>([
@@ -671,6 +672,7 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome, initialTab }: 
         {/* ── Canva view (Lilou only) ── */}
         {activeTab === "canva" && (
           <CanvaPanel
+            oauthError={canvaError}
             onSendToChat={(base64, mimeType, name) => {
               setAttachedFile({ name, mimeType, data: base64, isText: false });
               setActiveTab("chat");
