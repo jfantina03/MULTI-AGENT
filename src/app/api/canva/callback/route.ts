@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getPkceVerifier } from "../auth/route";
 
 export const runtime = "nodejs";
 
@@ -11,20 +10,27 @@ const REDIRECT_URI =
   "https://multi-agent-beige-xi.vercel.app/api/canva/callback";
 
 const HOME = "/?agent=lilou&tab=canva";
-const ERR = "/?agent=lilou&tab=canva&canva_error=1";
+const ERR  = "/?agent=lilou&tab=canva&canva_error=1";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
+  const code  = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
   if (error || !code || !state) {
-    console.error("[canva/callback] missing code/state or error:", error);
+    console.error("[canva/callback] missing code/state or Canva error:", error);
     return NextResponse.redirect(new URL(ERR, req.url));
   }
 
-  const codeVerifier = state ? getPkceVerifier(state) : undefined;
+  // Decode state to retrieve code_verifier
+  let codeVerifier: string | undefined;
+  try {
+    const decoded = JSON.parse(Buffer.from(state, "base64url").toString()) as { cv?: string };
+    codeVerifier = decoded.cv;
+  } catch {
+    console.error("[canva/callback] could not decode state");
+  }
 
   const bodyParams: Record<string, string> = {
     grant_type: "authorization_code",
@@ -56,6 +62,7 @@ export async function GET(req: NextRequest) {
 
     const isProd = process.env.NODE_ENV === "production";
     const cookieStore = await cookies();
+
     cookieStore.set("canva_access_token", tokenData.access_token, {
       httpOnly: true, secure: isProd, sameSite: "lax",
       maxAge: tokenData.expires_in ?? 3600, path: "/",
