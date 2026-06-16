@@ -26,7 +26,7 @@ export async function GET() {
     client_id: CLIENT_ID,
     response_type: "code",
     redirect_uri: REDIRECT_URI,
-    scope: "design:content:read design:content:write design:meta:read asset:read asset:write profile:read",
+    scope: "design:content:read design:content:write design:meta:read asset:read asset:write profile:read folder:read",
     state,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
