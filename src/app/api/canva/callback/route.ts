@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 
@@ -61,20 +60,20 @@ export async function GET(req: NextRequest) {
     };
 
     const isProd = process.env.NODE_ENV === "production";
-    const cookieStore = await cookies();
+    const response = NextResponse.redirect(new URL(HOME, req.url));
 
-    cookieStore.set("canva_access_token", tokenData.access_token, {
+    response.cookies.set("canva_access_token", tokenData.access_token, {
       httpOnly: true, secure: isProd, sameSite: "lax",
       maxAge: tokenData.expires_in ?? 3600, path: "/",
     });
     if (tokenData.refresh_token) {
-      cookieStore.set("canva_refresh_token", tokenData.refresh_token, {
+      response.cookies.set("canva_refresh_token", tokenData.refresh_token, {
         httpOnly: true, secure: isProd, sameSite: "lax",
         maxAge: 60 * 60 * 24 * 30, path: "/",
       });
     }
 
-    return NextResponse.redirect(new URL(HOME, req.url));
+    return response;
   } catch (e) {
     console.error("[canva/callback] unexpected error:", e);
     return NextResponse.redirect(new URL(ERR, req.url));
