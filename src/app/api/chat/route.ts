@@ -42,6 +42,14 @@ Réponds en français de manière précise et structurée. Distingue clairement 
 Important : tes réponses sont à titre informatif. Pour les actes juridiques définitifs, Jade doit consulter un notaire ou avocat habilité.`,
 };
 
+const FORMAT_RULES = `Règles de format impératives :
+- Texte brut uniquement : aucun emoji, aucun markdown (pas de **, *, #, _, ~, etc.).
+- Listes avec tirets simples (-), jamais de bullets spéciaux.
+- Réponses courtes, directes et sans fioritures.
+- Quand tu poses une question avec des choix possibles, termine le message par cette balise sur une nouvelle ligne : [Choix: option1 | option2 | option3] (4 options max).
+
+`;
+
 interface InputMessage {
   id: string;
   role: string;
@@ -58,7 +66,7 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, agentId } = await req.json();
 
-    const systemPrompt = SYSTEM_PROMPTS[agentId as string] ?? SYSTEM_PROMPTS.thomas;
+    const systemPrompt = FORMAT_RULES + (SYSTEM_PROMPTS[agentId as string] ?? SYSTEM_PROMPTS.thomas);
 
     const anthropicMessages = (messages as InputMessage[])
       .filter((m) => m.id !== "intro")

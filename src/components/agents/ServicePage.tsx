@@ -42,6 +42,13 @@ function SunIcon() {
     </svg>
   );
 }
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width={15} height={15}>
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function FileIcon({ type }: { type: "pdf" | "doc" | "xls" | "img" }) {
   const colors: Record<string, string> = {
@@ -62,6 +69,15 @@ function FileIcon({ type }: { type: "pdf" | "doc" | "xls" | "img" }) {
       {labels[type]}
     </span>
   );
+}
+
+/* ─── Quick reply parser ───────────────────────────── */
+function parseChoices(text: string): { clean: string; choices: string[] } {
+  const match = text.match(/\[Choix:\s*([^\]]+)\]/i);
+  if (!match) return { clean: text, choices: [] };
+  const choices = match[1].split("|").map((s) => s.trim()).filter(Boolean);
+  const clean = text.replace(match[0], "").trim();
+  return { clean, choices };
 }
 
 /* ─── Types ────────────────────────────────────────── */
@@ -96,6 +112,29 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
+
+  // Charger l'historique depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(`chat_${agent.id}`);
+    if (saved) {
+      try {
+        const parsed: Message[] = JSON.parse(saved);
+        if (parsed.length > 0) setMessages(parsed);
+      } catch {}
+    } else {
+      setMessages([{ id: "intro", role: "agent", text: agent.intro }]);
+    }
+    abortRef.current?.abort();
+    setTyping(false);
+    setInput("");
+  }, [agent.id, agent.intro]);
+
+  // Sauvegarder l'historique à chaque changement
+  useEffect(() => {
+    if (messages.length > 1) {
+      localStorage.setItem(`chat_${agent.id}`, JSON.stringify(messages));
+    }
+  }, [messages, agent.id]);
 
   function uid() {
     return Math.random().toString(36).slice(2);
@@ -165,6 +204,14 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
     if (!action) return;
     setActiveTab(actionId);
     callAPI({ id: uid(), role: "user", text: action.seed });
+  }
+
+  function clearHistory() {
+    abortRef.current?.abort();
+    setTyping(false);
+    setInput("");
+    localStorage.removeItem(`chat_${agent.id}`);
+    setMessages([{ id: "intro", role: "agent", text: agent.intro }]);
   }
 
   function sendMessage() {
@@ -257,6 +304,27 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
           </span>
         </div>
 
+        {/* Clear history */}
+        <button
+          onClick={clearHistory}
+          title="Nouvelle conversation"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            height: 40, padding: "0 14px",
+            borderRadius: 999,
+            border: "1px solid var(--border-strong)",
+            background: "var(--surface)",
+            color: "var(--ink-soft)",
+            fontWeight: 700, fontSize: 13,
+            flexShrink: 0, cursor: "pointer",
+            transition: "color .15s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-soft)")}
+        >
+          <TrashIcon />
+        </button>
+
         {/* Theme toggle */}
         <button
           onClick={onToggleTheme}
@@ -340,8 +408,15 @@ export function ServicePage({ agent, dark, onToggleTheme, onHome }: ServicePageP
         {showChat && (
           <>
             <div style={{ flex: 1, paddingTop: agent.isManager ? 20 : 12, paddingBottom: 16, display: "flex", flexDirection: "column", gap: 6 }}>
-              {messages.map((msg) => (
-                <ChatMessage key={msg.id} msg={msg} agent={agent} />
+              {messages.map((msg, i) => (
+                <ChatMessage
+                  key={msg.id}
+                  msg={msg}
+                  agent={agent}
+                  isLast={i === messages.length - 1}
+                  disabled={typing}
+                  onChoice={(choice) => callAPI({ id: uid(), role: "user", text: choice })}
+                />
               ))}
 
               {/* Typing indicator */}
@@ -532,36 +607,78 @@ function TabPill({ label, active, onClick, dashed }: { label: string; active: bo
 }
 
 /* ─── Chat Message ─────────────────────────────────── */
-function ChatMessage({ msg, agent }: { msg: Message; agent: Agent }) {
+function ChatMessage({
+  msg,
+  agent,
+  isLast,
+  disabled,
+  onChoice,
+}: {
+  msg: Message;
+  agent: Agent;
+  isLast: boolean;
+  disabled: boolean;
+  onChoice: (choice: string) => void;
+}) {
   const isAgent = msg.role === "agent";
 
   if (isAgent) {
+    const { clean, choices } = parseChoices(msg.text);
     return (
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, maxWidth: "80%" }}>
-        <span style={{
-          width: 36, height: 36, borderRadius: "50%", overflow: "hidden", display: "block",
-          flexShrink: 0, marginTop: 22,
-          boxShadow: "0 0 0 2px var(--ring)",
-        }}>
-          <Image src={agent.avatar} alt={agent.name} width={36} height={36} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        </span>
-        <div>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-faint)", marginBottom: 6 }}>
-            {agent.name}
-          </div>
-          <div style={{
-            padding: "12px 16px",
-            borderRadius: "18px 18px 18px 6px",
-            background: "var(--bubble-agent)",
-            color: "var(--bubble-agent-ink)",
-            boxShadow: "var(--shadow)",
-            border: "1px solid var(--border)",
-            fontSize: 15, lineHeight: 1.6,
-            whiteSpace: "pre-wrap",
+      <div style={{ maxWidth: "80%" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <span style={{
+            width: 36, height: 36, borderRadius: "50%", overflow: "hidden", display: "block",
+            flexShrink: 0, marginTop: 22,
+            boxShadow: "0 0 0 2px var(--ring)",
           }}>
-            {msg.text}
+            <Image src={agent.avatar} alt={agent.name} width={36} height={36} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </span>
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-faint)", marginBottom: 6 }}>
+              {agent.name}
+            </div>
+            <div style={{
+              padding: "12px 16px",
+              borderRadius: "18px 18px 18px 6px",
+              background: "var(--bubble-agent)",
+              color: "var(--bubble-agent-ink)",
+              boxShadow: "var(--shadow)",
+              border: "1px solid var(--border)",
+              fontSize: 15, lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+            }}>
+              {clean || msg.text}
+            </div>
           </div>
         </div>
+        {isLast && choices.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10, marginLeft: 46 }}>
+            {choices.map((choice) => (
+              <button
+                key={choice}
+                onClick={() => !disabled && onChoice(choice)}
+                disabled={disabled}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 999,
+                  border: "1.5px solid var(--border-strong)",
+                  background: "var(--surface)",
+                  color: "var(--ink)",
+                  fontWeight: 600, fontSize: 13.5,
+                  cursor: disabled ? "default" : "pointer",
+                  opacity: disabled ? 0.45 : 1,
+                  transition: "background .15s, color .15s",
+                  fontFamily: "inherit",
+                }}
+                onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.background = "var(--forest)"; e.currentTarget.style.color = "#fff"; } }}
+                onMouseLeave={(e) => { if (!disabled) { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.color = "var(--ink)"; } }}
+              >
+                {choice}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
