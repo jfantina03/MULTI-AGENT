@@ -16,7 +16,7 @@ export async function GET() {
     client_id: CLIENT_ID,
     response_type: "code",
     redirect_uri: REDIRECT_URI,
-    scope: "design:content:read design:meta:read asset:read profile:read",
+    scope: "design:content:read design:content:write design:meta:read asset:read asset:write profile:read",
     state,
   });
 
