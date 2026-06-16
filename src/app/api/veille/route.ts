@@ -96,10 +96,20 @@ interface Article {
   description: string;
   pubDate: string;
   source: string;
+  imageUrl: string;
 }
 
 function extract(str: string, re: RegExp): string {
   return (str.match(re)?.[1] ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').trim();
+}
+
+function extractImage(item: string): string {
+  return (
+    extract(item, /<media:content[^>]+url="([^"]+)"/) ||
+    extract(item, /<media:thumbnail[^>]+url="([^"]+)"/) ||
+    extract(item, /<enclosure[^>]+url="([^"]+)"[^>]+type="image/) ||
+    (item.match(/<img[^>]+src="(https?:\/\/[^"]+)"/)?.[1] ?? "")
+  );
 }
 
 function parseRSS(xml: string): Article[] {
@@ -112,16 +122,17 @@ function parseRSS(xml: string): Article[] {
       extract(item, /<link>(https?:\/\/[^\s<]+)<\/link>/) ||
       extract(item, /<link href="(https?:\/\/[^"]+)"/);
     if (!title || !link) return acc;
-    const description = (
+    const rawDesc =
       extract(item, /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) ||
-      extract(item, /<description>([\s\S]*?)<\/description>/)
-    ).replace(/<[^>]+>/g, "").slice(0, 240);
+      extract(item, /<description>([\s\S]*?)<\/description>/);
+    const description = rawDesc.replace(/<[^>]+>/g, "").slice(0, 240);
+    const imageUrl = extractImage(item) || (rawDesc.match(/<img[^>]+src="(https?:\/\/[^"]+)"/)?.[1] ?? "");
     const pubDate = extract(item, /<pubDate>([\s\S]*?)<\/pubDate>/);
     let source = extract(item, /<source[^>]*>([\s\S]*?)<\/source>/);
     if (!source && link) {
       try { source = new URL(link).hostname.replace(/^www\./, ""); } catch { /* noop */ }
     }
-    acc.push({ title, link, description, pubDate, source });
+    acc.push({ title, link, description, pubDate, source, imageUrl });
     return acc;
   }, []);
 }

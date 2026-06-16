@@ -293,6 +293,18 @@ export const AGENTS: Agent[] = [
       "Bonjour Jade ! Je suis Léa, votre reportrice. Je surveille l'actualité pour vous — diagnostic, marché immobilier, finance et réglementation. Choisissez un sujet et je vous livre les dernières infos.",
     actions: [
       {
+        id: "veille-brs-rennes",
+        label: "BRS 35",
+        seed: "",
+        reply: "",
+      },
+      {
+        id: "veille-brs-france",
+        label: "BRS France",
+        seed: "",
+        reply: "",
+      },
+      {
         id: "veille-diagnostic",
         label: "Diagnostic",
         seed: "",

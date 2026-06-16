@@ -8,6 +8,7 @@ interface Article {
   description: string;
   pubDate: string;
   source: string;
+  imageUrl?: string;
 }
 
 interface Source {
@@ -16,7 +17,7 @@ interface Source {
 }
 
 const TOPIC_LABELS: Record<string, string> = {
-  "veille-brs-rennes": "BRS Rennes",
+  "veille-brs-rennes": "BRS Rennes / 35",
   "veille-brs-france": "BRS France",
   "veille-ofs": "OFS",
   "veille-diagnostic": "Diagnostic",
@@ -146,7 +147,9 @@ export function VeilleView({ topic }: { topic: string }) {
               style={{
                 gridColumn: i === 0 ? "span 2" : "auto",
                 borderRadius: 16,
-                background: GRADIENTS[i % GRADIENTS.length],
+                background: article.imageUrl
+                  ? `url(${article.imageUrl}) center/cover no-repeat, ${GRADIENTS[i % GRADIENTS.length]}`
+                  : GRADIENTS[i % GRADIENTS.length],
                 display: "flex", flexDirection: "column", justifyContent: "flex-end",
                 padding: 18,
                 minHeight: i === 0 ? 230 : 158,
