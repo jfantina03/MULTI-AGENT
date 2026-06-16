@@ -20,7 +20,7 @@ export async function GET() {
     state,
   });
 
-  const authUrl = `https://api.canva.com/rest/v1/oauth/authorize?${params.toString()}`;
+  const authUrl = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;
 
   const cookieStore = await cookies();
   cookieStore.set("canva_oauth_state", state, {
