@@ -36,7 +36,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/thomas.png",
     short: "Confiez-lui un objectif, il le répartit entre les bons services.",
     intro:
-      "Bonjour Jade 👋 Je suis Thomas, votre manager. Donnez-moi un objectif global et je le découpe en missions que je délègue aux bons services. Par quoi commence-t-on aujourd'hui ?",
+      "Jade, qu'est-ce qu'on attaque aujourd'hui ? Donne-moi un objectif et je le répartis entre les bons services.",
     actions: [
       {
         id: "deleguer",
@@ -67,7 +67,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/hugo.png",
     short: "Repère les clients & entreprises à prospecter en Ille-et-Vilaine (35).",
     intro:
-      "Bonjour Jade ! Je suis Hugo, votre commercial. Je repère les clients et entreprises à prospecter en Ille-et-Vilaine (35). Dites-moi ce qu'il vous faut.",
+      "Salut Jade. Sur quoi tu veux avancer côté prospection ? Un secteur, un type de cible, un argumentaire — dis-moi.",
     actions: [
       {
         id: "prospection",
@@ -105,7 +105,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/lilou.png",
     short: "Rédige posts, réels et carrousels Insta · TikTok · LinkedIn, à la charte.",
     intro:
-      "Coucou Jade ! Lilou à l'appareil 📱 Je rédige vos posts, réels et carrousels pour Insta, TikTok et LinkedIn, toujours à la charte Orizon. On crée quoi aujourd'hui ?",
+      "Jade ! Qu'est-ce qu'on crée aujourd'hui ? Post, réel, carrousel — dis-moi le sujet et je m'en occupe.",
     actions: [
       {
         id: "linkedin",
@@ -150,7 +150,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/ines.png",
     short: "Analyse vos résultats dans une logique d'amélioration continue.",
     intro:
-      "Bonjour Jade. Inès, analyste stratégique. J'examine vos résultats et je dégage des axes d'amélioration concrets. Sur quoi voulez-vous voir plus clair ?",
+      "Jade, sur quoi tu veux voir plus clair ? Résultats du mois, benchmark concurrents, opportunités de marché — dis-moi ce qu'on analyse.",
     actions: [
       {
         id: "analyse",
@@ -180,7 +180,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/leo.png",
     short: "Bilan, compte de résultat et prévisionnel — répond en données chiffrées.",
     intro:
-      "Bonjour Jade. Je suis Léo, votre analyste financier. Prévisionnels, comptes de résultat, tableaux de bord KPI — je réponds en chiffres. Que voulez-vous modéliser ?",
+      "Jade, qu'est-ce qu'on modélise ? Prévisionnel, plan de financement acquéreur, tableau de bord KPI — donne-moi les paramètres.",
     actions: [
       {
         id: "previsionnel",
@@ -210,7 +210,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/lucas.png",
     short: "Rédige vos mails types, vos comptes-rendus de RDV et reformule.",
     intro:
-      "Bonjour Jade ! Lucas ici. Je rédige, reformule et structure tous vos écrits professionnels — mails, comptes rendus, présentations. Quel document on attaque ?",
+      "Jade, quel document on attaque ? Mail, compte rendu, présentation — donne-moi le contexte et je rédige.",
     actions: [
       {
         id: "courrier",
@@ -240,7 +240,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/claire.png",
     short: "Contrats, questions de droit et veille d'actualité sur vos fiches sources.",
     intro:
-      "Bonjour Jade. Je suis Claire, votre juriste IA. Je rédige contrats et courriers, réponds à vos questions de droit immobilier et assure la veille réglementaire — BRS, PSLA, ANRU. Que puis-je faire pour vous ?",
+      "Jade, qu'est-ce qu'il te faut ? Contrat, question de droit, veille BRS/PSLA/ANRU — je suis là.",
     actions: [
       {
         id: "contrat",
@@ -290,7 +290,7 @@ export const AGENTS: Agent[] = [
     avatar: "/avatars/lea.jpeg",
     short: "Veille quotidienne sur le diagnostic, l'immobilier, la finance et le juridique.",
     intro:
-      "Bonjour Jade ! Je suis Léa, votre reportrice. Je surveille l'actualité pour vous — diagnostic, marché immobilier, finance et réglementation. Choisissez un sujet et je vous livre les dernières infos.",
+      "Jade, quel sujet on couvre aujourd'hui ? Marché immobilier, finance, juridique, diagnostic — choisis et je te fais le point.",
     actions: [
       {
         id: "veille-brs-rennes",
