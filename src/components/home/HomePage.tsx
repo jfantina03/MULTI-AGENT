@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 import { AGENTS } from "@/lib/agents";
 import type { Agent } from "@/lib/agents";
 import { ServicePage } from "@/components/agents/ServicePage";
@@ -132,7 +133,23 @@ export function HomePage() {
             priority
           />
         </div>
-        <ThemeToggle dark={dark} onToggle={toggleTheme} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            style={{
+              height: 44, padding: "0 16px", borderRadius: 999,
+              border: "1px solid var(--border-strong)",
+              background: "transparent", color: "var(--ink-faint)",
+              fontWeight: 700, fontSize: 13.5, cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--ink)"; e.currentTarget.style.borderColor = "var(--ink-soft)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--ink-faint)"; e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+          >
+            Déconnexion
+          </button>
+        </div>
       </header>
 
       {/* ── Canvas ── */}
